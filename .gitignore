@@ -1,0 +1,15 @@
+# Local dependencies and generated outputs
+.deps/
+.local/
+.runtime/
+build/
+dist/
+release/*
+!release/README.md
+*.zip
+*.user
+.vs/
+# Local agent state
+.agents/
+.codex/
+.pdca-status.json
