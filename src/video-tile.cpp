@@ -42,9 +42,7 @@ bool onProgram(obs_source_t *target, obs_source_t *explicitSource)
     SourceRef current(obs_frontend_get_current_scene());
     SourceRef transition(obs_frontend_get_current_transition());
     if (transition.value && obs_transition_is_active(transition.value)) {
-        SourceRef a(obs_transition_get_source(transition.value, OBS_TRANSITION_SOURCE_A));
-        SourceRef b(obs_transition_get_source(transition.value, OBS_TRANSITION_SOURCE_B));
-        return sourceOnRoot(a.value, target, explicitSource) || sourceOnRoot(b.value, target, explicitSource);
+        return sourceOnRoot(transition.value, target, explicitSource);
     }
     return sourceOnRoot(current.value, target, explicitSource);
 }

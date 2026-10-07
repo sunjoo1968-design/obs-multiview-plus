@@ -1,6 +1,7 @@
 // Test-only module. Never install or distribute with the production plugin.
 #include <obs-module.h>
 #include <obs-frontend-api.h>
+#include <util/bmem.h>
 #include <QAction>
 #include <QApplication>
 #include <QComboBox>
@@ -24,6 +25,8 @@
 #include <QSet>
 #include "tally-obs.hpp"
 #include "gpu-capture.hpp"
+#include "controller-fixture.hpp"
+#include "switcher-fixture.hpp"
 
 OBS_DECLARE_MODULE()
 MODULE_EXPORT const char *obs_module_name(void) { return "Multiview isolated smoke driver"; }
@@ -75,7 +78,8 @@ void record(const QString &key, bool success)
 QWidget *findWindow(const QString &title)
 {
     for (auto *widget : QApplication::topLevelWidgets())
-        if (widget->windowTitle() == title && widget->isVisible()) return widget;
+        if ((widget->windowTitle() == title || (qEnvironmentVariableIsSet("MV_TEST_LEGACY_VERSION") &&
+             title.startsWith("OBS Multiview Plus") && widget->windowTitle() == "OBS Multiview Plus")) && widget->isVisible()) return widget;
     return nullptr;
 }
 void capture(QWidget *widget, const QString &name)
@@ -196,10 +200,43 @@ void createScenes()
         if (scene) obs_scene_release(scene);
     }
 }
+void exerciseCollectionReload()
+{
+    if (qEnvironmentVariableIsSet("MV_TEST_SKIP_COLLECTION")) { finish(); return; }
+    char *original = obs_frontend_get_current_scene_collection();
+    const QString collection = QString::fromUtf8(original ? original : "");
+    bfree(original);
+    auto *camera = obs_get_source_by_name("MV Smoke Scene 2");
+    const QString uuid = camera ? QString::fromUtf8(obs_source_get_uuid(camera)) : QString();
+    obs_source_release(camera);
+    obs_frontend_save();
+    const bool created = obs_frontend_add_scene_collection("MV Isolated Collection Reload");
+    record("collection_test_created", created && !collection.isEmpty() && !uuid.isEmpty());
+    if (!created || collection.isEmpty()) { finish(); return; }
+    QTimer::singleShot(400, qApp, [collection, uuid] {
+        auto *old = obs_get_source_by_uuid(uuid.toUtf8().constData());
+        record("collection_old_uuid_unavailable", old == nullptr);
+        obs_source_release(old);
+        obs_frontend_set_current_scene_collection(collection.toUtf8().constData());
+        QTimer::singleShot(600, qApp, [uuid] {
+            auto *restored = obs_get_source_by_uuid(uuid.toUtf8().constData());
+            record("collection_uuid_restored", restored != nullptr);
+            obs_source_release(restored);
+            auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
+            bool named = false;
+            if (window) for (auto *tile : window->findChildren<QWidget *>("multiviewTile"))
+                if (tile->property("nameOverlayText").toString() == "MV Smoke Scene 2") named = true;
+            record("collection_tile_resumed", named);
+            checkSceneAnchor("collection_reloaded");
+            if (window) window->close();
+            finish();
+        });
+    });
+}
 void exerciseReopen()
 {
     checkSceneAnchor("configured");
-    auto *window = findWindow("OBS Multiview Plus");
+    auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
     record("configured_window_visible", window != nullptr);
     capture(window, "configured");
     record("gpu_program_pixels", mvtest::captureGpu(nullptr, true, output + "/gpu-program.png"));
@@ -249,11 +286,11 @@ void exerciseReopen()
     obs_frontend_set_current_preview_scene(samePreview);
     obs_source_release(samePreview);
     if (window) window->close();
-    record("close_hidden", findWindow("OBS Multiview Plus") == nullptr);
+    record("close_hidden", findWindow("OBS Multiview Plus 0.5.0 Controller") == nullptr);
     QTimer::singleShot(300, qApp, [] {
         if (launchAction) launchAction->trigger();
         QTimer::singleShot(1000, qApp, [] {
-            auto *reopened = findWindow("OBS Multiview Plus");
+            auto *reopened = findWindow("OBS Multiview Plus 0.5.0 Controller");
             record("reopen_visible", reopened != nullptr);
             capture(reopened, "reopened");
             checkSceneAnchor("reopened");
@@ -266,15 +303,16 @@ void exerciseReopen()
             }
             record("simultaneous_pgm_pvw_program_priority", bothRed);
             if (reopened) reopened->close();
-            record("second_close_hidden", findWindow("OBS Multiview Plus") == nullptr);
-            finish();
+            record("second_close_hidden", findWindow("OBS Multiview Plus 0.5.0 Controller") == nullptr);
+            if (launchAction) launchAction->trigger();
+            QTimer::singleShot(300, qApp, exerciseCollectionReload);
         });
     });
 }
 void editSettings()
 {
     checkSceneAnchor("initial");
-    auto *window = findWindow("OBS Multiview Plus");
+    auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
     record("multiview_visible", window != nullptr);
     capture(window, "initial");
     if (!window) { finish(); return; }
@@ -352,10 +390,8 @@ void editSettings()
     } else record("drag_settings_saved", false);
     if (!finished) QTimer::singleShot(4500, qApp, exerciseReopen);
 }
-void start()
+void startLegacyChecks()
 {
-    if (started) return;
-    started = true;
     createScenes();
     exerciseTallyGraphs();
     auto *mainWindow = static_cast<QWidget *>(obs_frontend_get_main_window());
@@ -365,6 +401,15 @@ void start()
     if (!launchAction) { finish(); return; }
     launchAction->trigger();
     QTimer::singleShot(2000, qApp, editSettings);
+}
+void start()
+{
+    if (started) return;
+    started = true;
+    if (qEnvironmentVariableIsSet("MV_TEST_SKIP_CONTROLLER")) { startLegacyChecks(); return; }
+    mvtest::runControllerFixture(output, record, [] {
+        mvtest::runSwitcherFixture(output, record, startLegacyChecks);
+    });
 }
 void eventCallback(enum obs_frontend_event event, void *)
 {

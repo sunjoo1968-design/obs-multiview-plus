@@ -29,7 +29,7 @@ MODULE_EXPORT const char *obs_module_description(void)
 {
 	return "Custom native multiview with flexible layouts and visibility tally";
 }
-MODULE_EXPORT const char *obs_module_name(void) { return "OBS Multiview Plus"; }
+MODULE_EXPORT const char *obs_module_name(void) { return "OBS Multiview Plus 0.5.0 Controller"; }
 
 namespace {
 QString settingsPath()
@@ -119,7 +119,7 @@ class MultiviewWindow final : public QMainWindow {
 public:
 	MultiviewWindow() : QMainWindow(nullptr)
 	{
-		setWindowTitle(QStringLiteral("OBS Multiview Plus"));
+		setWindowTitle(QStringLiteral("OBS Multiview Plus 0.5.0 Controller"));
 		resize(1280, 780);
 		config = mv::defaultLayout();
 		QString error;
@@ -236,7 +236,7 @@ void frontendEvent(enum obs_frontend_event event, void *)
 
 bool obs_module_load(void)
 {
-	blog(LOG_INFO, "[multiview-plus] version 0.4.0 loaded (OBS 32.2.2 / Windows x64)");
+	blog(LOG_INFO, "[multiview-plus] version 0.5.0 Controller loaded (OBS 32.2.2 / Windows x64)");
 	return true;
 }
 

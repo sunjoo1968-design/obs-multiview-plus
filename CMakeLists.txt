@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(obs-multiview-plus VERSION 0.4.0 LANGUAGES CXX)
+project(obs-multiview-plus VERSION 0.5.0 LANGUAGES CXX)
 
 if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Windows x64 is required")

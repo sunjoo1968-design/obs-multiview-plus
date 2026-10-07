@@ -37,3 +37,6 @@ Short isolated tests do not certify prolonged live production or every GPU drive
 ## Release packaging
 After validation, `scripts/package.ps1` collects the installation ZIP, source ZIP, DLL and checksums under `release/<version>`.
 Publish only the reviewed release files. Keep runtime logs, reference images, local histories and downloaded SDKs out of version control.
+
+## 0.5.0 Controller
+Local validated development build; see [report](04-report/controller-integration.report.md). Native Fade and installed Source Switcher fixtures passed. Shutdown leak count 1 matched the existing 0.4.0 comparison baseline; this is not a zero-leak certification. The default runtime test remains strict; use -ExpectedMemoryLeaks 1 only for an explicitly established comparison. Field deployment and external tally work remain pending.

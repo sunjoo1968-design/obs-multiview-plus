@@ -1,4 +1,6 @@
-param([string]$ObsPath = 'C:\Program Files\obs-studio', [switch]$WithSceneAnchor)
+param([string]$ObsPath = 'C:\Program Files\obs-studio', [switch]$WithSceneAnchor, [switch]$WithSourceSwitcher,
+      [string]$PluginDllPath = 'build/Release/obs-multiview-plus.dll',
+      [ValidateRange(0,100)][int]$ExpectedMemoryLeaks = 0)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $runRoot = Join-Path $projectRoot ('.local\runtime\run-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
@@ -20,9 +22,13 @@ try {
     foreach ($dll in @('image-source','obs-transitions','obs-filters','obs-text','rtmp-services','obs-ffmpeg','obs-outputs','obs-x264')) {
         Copy-Item -LiteralPath (Join-Path $ObsPath "obs-plugins\64bit\$dll.dll") -Destination $pluginPath
     }
-    Copy-Item build/Release/obs-multiview-plus.dll,build/Release/obs-multiview-smoke.dll -Destination $pluginPath
+    Copy-Item -LiteralPath $PluginDllPath -Destination (Join-Path $pluginPath 'obs-multiview-plus.dll')
+    Copy-Item build/Release/obs-multiview-smoke.dll -Destination $pluginPath
     if ($WithSceneAnchor) {
         Copy-Item -LiteralPath (Join-Path $ObsPath 'obs-plugins\64bit\scene-anchor.dll') -Destination $pluginPath
+    }
+    if ($WithSourceSwitcher) {
+        Copy-Item -LiteralPath (Join-Path $ObsPath 'obs-plugins\64bit\source-switcher.dll') -Destination $pluginPath
     }
     $configRoot = Join-Path $runtimeRoot 'config\obs-studio'
     New-Item -ItemType Directory -Force (Join-Path $configRoot 'basic\scenes'),(Join-Path $configRoot 'basic\profiles') | Out-Null
@@ -39,9 +45,12 @@ try {
     if (-not $result.passed) { throw "Runtime checks failed: $($result.failures -join ', ')" }
     $log = Get-ChildItem (Join-Path $configRoot 'logs') -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     Copy-Item -LiteralPath $log.FullName -Destination (Join-Path $resultsRoot 'obs.log')
-    if (-not (Select-String -LiteralPath $log.FullName -Pattern 'Number of memory leaks: 0' -Quiet)) {
-        throw "OBS did not report a clean shutdown: $resultsRoot"
-    }
+    $logText = Get-Content -LiteralPath $log.FullName -Raw
+    if ($logText -match 'Double destroy|source\(s\) were remaining') { throw "Source lifetime error: $resultsRoot" }
+    if ($logText -notmatch 'Number of memory leaks: (\d+)') { throw "Missing shutdown leak report: $resultsRoot" }
+    $actualLeaks = [int]$Matches[1]
+    if ($actualLeaks -ne $ExpectedMemoryLeaks) { throw "Shutdown leaks $actualLeaks; expected $ExpectedMemoryLeaks : $resultsRoot" }
+    if ($actualLeaks -gt 0) { Write-Warning "OBS reported $actualLeaks memory leak(s), matching the explicitly supplied comparison baseline. This is not a zero-leak shutdown." }
     Write-Output "Runtime checks passed: $resultsRoot"
 } finally {
     if (Test-Path Env:\MV_SMOKE_OUTPUT) { Remove-Item Env:\MV_SMOKE_OUTPUT }
