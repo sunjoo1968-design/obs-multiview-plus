@@ -3,7 +3,7 @@
 Windows x64 · OBS Studio 32.2.2 전용 개발 버전 **0.5.0 Controller**.
 OBS 네이티브 렌더링 API를 사용하는 별도 멀티뷰 플러그인입니다.
 
-이번 0.5.0 Controller는 **로컬 검증용 배포본**이며 GitHub에 공개하지 않았습니다. 기존 [공개 0.4.0](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.4.0)은 유지합니다.
+0.5.0 Controller는 **검증용 개발 버전**입니다. 실제 현장 적용 전 검증 보고서를 확인하세요. 안정 버전 [0.4.0](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.4.0)은 별도로 유지합니다. 종료 누수 보고 1건이 기존 0.4.0 비교 환경에서도 확인되어 발생 주체는 미확정입니다.
 
 ## 설치
 
