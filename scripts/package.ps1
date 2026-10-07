@@ -10,6 +10,10 @@ try {
     Compress-Archive -Path dist/obs-plugins,dist/data -DestinationPath "$destination/obs-multiview-plus-$version-windows-x64.zip" -Force
     Copy-Item -LiteralPath dist/obs-plugins/64bit/obs-multiview-plus.dll -Destination $destination -Force
     Copy-Item -LiteralPath README.md,LICENSE -Destination $destination -Force
+    $releaseNotes = "docs/04-report/release-$version.md"
+    if (Test-Path -LiteralPath $releaseNotes) {
+        Copy-Item -LiteralPath $releaseNotes -Destination "$destination/RELEASE-NOTES.md" -Force
+    }
     Compress-Archive -Path src,tests,scripts,docs,CMakeLists.txt,README.md,LICENSE -DestinationPath "$destination/obs-multiview-plus-$version-source.zip" -Force
     Get-ChildItem -LiteralPath $destination -File | Where-Object Name -ne SHA256SUMS.txt | Sort-Object Name | ForEach-Object {
         $hash = Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256

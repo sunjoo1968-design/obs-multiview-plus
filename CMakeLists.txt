@@ -25,6 +25,10 @@ target_link_libraries(obs-sdk INTERFACE "${OBS_IMPORT_DIR}/obs.lib" "${OBS_IMPOR
 
 option(MV_BUILD_SMOKE_DRIVER "Build isolated OBS runtime test driver (never installed)" OFF)
 if(MV_BUILD_SMOKE_DRIVER)
+  add_library(obs-multiview-leak-probe MODULE tests/leak-probe.cpp)
+  target_link_libraries(obs-multiview-leak-probe PRIVATE obs-sdk Qt6::Widgets)
+  target_compile_options(obs-multiview-leak-probe PRIVATE /W4 /utf-8)
+  set_target_properties(obs-multiview-leak-probe PROPERTIES PREFIX "")
   add_library(obs-multiview-smoke MODULE tests/obs-smoke-driver.cpp)
   target_include_directories(obs-multiview-smoke PRIVATE src)
   target_link_libraries(obs-multiview-smoke PRIVATE obs-sdk Qt6::Widgets)
