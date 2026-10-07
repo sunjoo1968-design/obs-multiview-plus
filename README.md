@@ -1,9 +1,11 @@
 # OBS Multiview Plus
 
-Windows x64 · OBS Studio 32.2.2 전용 개발 버전 **0.5.0 Controller**.
+Windows x64 · OBS Studio 32.2.2 전용 릴리즈 **0.5.1 Controller**.
 OBS 네이티브 렌더링 API를 사용하는 별도 멀티뷰 플러그인입니다.
 
-0.5.0 Controller는 **검증용 개발 버전**입니다. 실제 현장 적용 전 검증 보고서를 확인하세요. 안정 버전 [0.4.0](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.4.0)은 별도로 유지합니다. 종료 누수 보고 1건이 기존 0.4.0 비교 환경에서도 확인되어 발생 주체는 미확정입니다.
+제작자: **SunjooAn** · 현재 버전: **0.5.1 Controller**. 창 제목·하단 상태 표시와 설정창에 항상 함께 표시하며 전체 화면에서도 하단 표기를 유지합니다.
+
+0.5.1 Controller는 **정식 릴리즈**입니다. 실제 현장 적용 전 검증 보고서를 확인하세요. 안정 버전 [0.4.0](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.4.0)은 별도로 유지합니다. 종료 누수 1건은 OBS 32.2.2 기본 서비스 업데이트의 ETag 해제 누락(실측 16바이트)으로 확인했습니다. 초기화 후 전체 기능·40회 열기/닫기 시험은 종료 누수 0건입니다. [조사 결과 및 적용 범위](docs/03-analysis/memory-leak-audit.report.md)를 확인하세요. OBS 원본용 수정안은 별도 보관하며 현장 설치본에는 적용하지 않았습니다.
 
 ## 설치
 
@@ -87,7 +89,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 공식 OBS 32.2.2 헤더와 OBS 배포에 맞는 Qt 6.11.1 개발 파일을 `.deps`에 내려받아 SHA256을 검증합니다.
 설치된 OBS DLL의 공개 export로 import library를 생성하므로 OBS 전체를 다시 빌드할 필요가 없습니다.
 OBS 위치가 다르면 `-ObsPath 'D:\OBS'`를 지정합니다.
-최종 결과: `release/0.5.0/`에 설치 ZIP, DLL, 소스 ZIP, 설명서와 SHA256 목록을 모읍니다.
+최종 결과: `release/0.5.1/`에 설치 ZIP, DLL, 소스 ZIP, 설명서와 SHA256 목록을 모읍니다.
 
 실제 OBS 구조를 재현하는 격리 테스트는 빌드 후 다음으로 실행합니다.
 

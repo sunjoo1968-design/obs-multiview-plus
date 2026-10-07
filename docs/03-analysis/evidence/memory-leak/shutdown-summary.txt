@@ -1,0 +1,7 @@
+.local/runtime/run-20261007-235636/initialization-results/obs.log
+23:56:45.811: Number of memory leaks: 1
+.local/runtime/run-20261007-235636/results/obs.log
+23:57:02.331: Number of memory leaks: 0
+.local/runtime/run-20261007-235636/stress-results/obs.log
+23:58:33.256: Number of memory leaks: 0
+Warm UCRT trace: libobs count=0 tracked=0

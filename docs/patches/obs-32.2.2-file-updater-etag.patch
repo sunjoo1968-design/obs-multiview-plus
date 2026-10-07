@@ -1,0 +1,22 @@
+diff --git a/shared/file-updater/file-updater/file-updater.c b/shared/file-updater/file-updater/file-updater.c
+index 1f3deb0..6d9c048 100644
+--- a/shared/file-updater/file-updater/file-updater.c
++++ b/shared/file-updater/file-updater/file-updater.c
+@@ -84,6 +84,9 @@ static size_t http_header(char *buffer, size_t size, size_t nitems, void *info_p
+ 		char *etag = buffer + 6;
+ 		if (*etag) {
+ 			struct update_info *info = info_param;
++			/* A reused CURL handle also receives child-file headers. */
++			if (info->remote_url)
++				return nitems * size;
+ 			char *etag_clean, *p;
+ 
+ 			etag_clean = bstrdup(etag);
+@@ -96,6 +99,7 @@ static size_t http_header(char *buffer, size_t size, size_t nitems, void *info_p
+ 			if (p)
+ 				*p = 0;
+ 
++			bfree(info->etag_remote);
+ 			info->etag_remote = etag_clean;
+ 		}
+ 	}

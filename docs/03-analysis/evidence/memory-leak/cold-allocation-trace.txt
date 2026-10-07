@@ -1,0 +1,43 @@
+symbols=1 error=203 modules=20
+module 7fffb8400000 loaded=7fffb8400000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\obs.dll
+module 7ff6d6c90000 loaded=7ff6d6c90000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\obs64.exe
+module 7fffd3d20000 loaded=7fffd3d20000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libobs-d3d11.dll
+module 7ff87ce40000 loaded=7ff87ce40000 error=0 C:\WINDOWS\System32\KERNEL32.DLL
+module 7fffb1ba0000 loaded=7fffb1ba0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\Qt6Core.dll
+module 7ff87e600000 loaded=7ff87e600000 error=0 C:\WINDOWS\SYSTEM32\ntdll.dll
+module 7ff87c100000 loaded=7ff87c100000 error=0 C:\WINDOWS\System32\ucrtbase.dll
+module 7fffd7420000 loaded=7fffd7420000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\w32-pthreads.dll
+module 7ff83cde0000 loaded=7ff83cde0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\image-source.dll
+module 7fffceeb0000 loaded=7fffceeb0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-ffmpeg.dll
+module 7fffbce90000 loaded=7fffbce90000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-filters.dll
+module 7ff836de0000 loaded=7ff836de0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-x264.dll
+module 7fffb6250000 loaded=7fffb6250000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-outputs.dll
+module 7fffcec90000 loaded=7fffcec90000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-text.dll
+module 7ff8391e0000 loaded=7ff8391e0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-transitions.dll
+module 7fffc5d30000 loaded=7fffc5d30000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\rtmp-services.dll
+module 7fffb7db0000 loaded=7fffb7db0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\Qt6Widgets.dll
+module 7fffb73f0000 loaded=7fffb73f0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\Qt6Gui.dll
+module 7fffd34f0000 loaded=7fffd34f0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll
+module 7ff83c8e0000 loaded=7ff83c8e0000 error=0 G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\obs-plugins\64bit\obs-multiview-leak-probe.dll
+libobs count=1 tracked=1
+allocation=000002A4B4CD0E60 bytes=16
+  bmemdup
+  http_header
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+15c19
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+1590f
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+154ff
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+44202
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+23132
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+444cb
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+451ed
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+2abe3
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+2a117
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+26e8c
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+5698d
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+56b50
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+5645a
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+3cf1b
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+3bb8e
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+39f8f
+  G:\codex_project\OBS-Multiview\.local\runtime\run-20261007-232135\obs\bin\64bit\libcurl.dll+191e4
+  do_http_request
