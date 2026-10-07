@@ -1,5 +1,6 @@
 #include "settings-dialog.hpp"
 #include "layout-preview.hpp"
+#include "version.hpp"
 #include <obs.h>
 #include <QCheckBox>
 #include <QComboBox>
@@ -81,6 +82,10 @@ SettingsDialog::SettingsDialog(QWidget *parent, const LayoutConfig &config) : QD
     auto *remove = new QPushButton(QStringLiteral("선택 칸 삭제"), this);
     auto *refresh = new QPushButton(QStringLiteral("장면·소스 목록 새로 고침"), this);
     actions->addWidget(add); actions->addWidget(remove); actions->addWidget(refresh); actions->addStretch(); root->addLayout(actions);
+    auto *identity = new QLabel(QString::fromUtf8(Identity), this);
+    identity->setObjectName("creatorVersionLabel");
+    identity->setTextFormat(Qt::PlainText);
+    actions->addWidget(identity);
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, this);
     buttons->button(QDialogButtonBox::Save)->setText(QStringLiteral("저장"));
     buttons->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("취소")); root->addWidget(buttons);

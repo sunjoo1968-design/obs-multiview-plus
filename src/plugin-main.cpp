@@ -1,6 +1,7 @@
 #include "layout-model.hpp"
 #include "settings-dialog.hpp"
 #include "video-tile.hpp"
+#include "version.hpp"
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
@@ -23,13 +24,15 @@
 #include <QSaveFile>
 #include <QScreen>
 #include <QToolBar>
+#include <QLabel>
+#include <QStatusBar>
 
 OBS_DECLARE_MODULE()
 MODULE_EXPORT const char *obs_module_description(void)
 {
 	return "Custom native multiview with flexible layouts and visibility tally";
 }
-MODULE_EXPORT const char *obs_module_name(void) { return "OBS Multiview Plus 0.5.0 Controller"; }
+MODULE_EXPORT const char *obs_module_name(void) { return mv::WindowTitle; }
 
 namespace {
 QString settingsPath()
@@ -119,7 +122,12 @@ class MultiviewWindow final : public QMainWindow {
 public:
 	MultiviewWindow() : QMainWindow(nullptr)
 	{
-		setWindowTitle(QStringLiteral("OBS Multiview Plus 0.5.0 Controller"));
+		setWindowTitle(QString::fromUtf8(mv::WindowTitle));
+		auto *identity = new QLabel(QString::fromUtf8(mv::Identity), this);
+		identity->setObjectName("creatorVersionLabel");
+		identity->setTextFormat(Qt::PlainText);
+		statusBar()->setSizeGripEnabled(false);
+		statusBar()->addPermanentWidget(identity);
 		resize(1280, 780);
 		config = mv::defaultLayout();
 		QString error;
@@ -236,7 +244,7 @@ void frontendEvent(enum obs_frontend_event event, void *)
 
 bool obs_module_load(void)
 {
-	blog(LOG_INFO, "[multiview-plus] version 0.5.0 Controller loaded (OBS 32.2.2 / Windows x64)");
+	blog(LOG_INFO, "[multiview-plus] %s loaded (OBS 32.2.2 / Windows x64)", mv::Identity);
 	return true;
 }
 

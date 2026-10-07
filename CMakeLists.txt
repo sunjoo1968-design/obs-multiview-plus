@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(obs-multiview-plus VERSION 0.5.0 LANGUAGES CXX)
+project(obs-multiview-plus VERSION 0.5.1 LANGUAGES CXX)
 
 if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Windows x64 is required")
@@ -18,6 +18,7 @@ set(OBS_RELEASE_CANDIDATE 0)
 set(OBS_BETA 0)
 configure_file("${OBS_SOURCE_DIR}/libobs/obsconfig.h.in" "${CMAKE_BINARY_DIR}/generated/obsconfig.h")
 add_library(obs-sdk INTERFACE)
+target_compile_definitions(obs-sdk INTERFACE MV_VERSION="${PROJECT_VERSION}")
 target_include_directories(obs-sdk SYSTEM INTERFACE
   "${OBS_SOURCE_DIR}/libobs" "${OBS_SOURCE_DIR}/frontend/api" "${CMAKE_BINARY_DIR}/generated")
 target_link_libraries(obs-sdk INTERFACE "${OBS_IMPORT_DIR}/obs.lib" "${OBS_IMPORT_DIR}/obs-frontend-api.lib")

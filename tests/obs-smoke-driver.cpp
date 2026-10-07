@@ -24,6 +24,7 @@
 #include <QTreeView>
 #include <QSet>
 #include "tally-obs.hpp"
+#include "version.hpp"
 #include "gpu-capture.hpp"
 #include "controller-fixture.hpp"
 #include "switcher-fixture.hpp"
@@ -222,7 +223,7 @@ void exerciseCollectionReload()
             auto *restored = obs_get_source_by_uuid(uuid.toUtf8().constData());
             record("collection_uuid_restored", restored != nullptr);
             obs_source_release(restored);
-            auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
+            auto *window = findWindow(QString::fromUtf8(mv::WindowTitle));
             bool named = false;
             if (window) for (auto *tile : window->findChildren<QWidget *>("multiviewTile"))
                 if (tile->property("nameOverlayText").toString() == "MV Smoke Scene 2") named = true;
@@ -236,7 +237,7 @@ void exerciseCollectionReload()
 void exerciseReopen()
 {
     checkSceneAnchor("configured");
-    auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
+    auto *window = findWindow(QString::fromUtf8(mv::WindowTitle));
     record("configured_window_visible", window != nullptr);
     capture(window, "configured");
     record("gpu_program_pixels", mvtest::captureGpu(nullptr, true, output + "/gpu-program.png"));
@@ -276,6 +277,8 @@ void exerciseReopen()
         for (auto *action : window->findChildren<QAction *>())
             if (action->text() == QStringLiteral("전체 화면")) { action->trigger(); break; }
         record("fullscreen_enter", window->isFullScreen());
+        auto *identity = window->findChild<QLabel *>("creatorVersionLabel");
+        record("creator_version_fullscreen_visible", identity && identity->isVisible() && identity->text() == QString::fromUtf8(mv::Identity));
         QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
         QApplication::sendEvent(window, &escape);
         record("fullscreen_escape", !window->isFullScreen());
@@ -286,11 +289,11 @@ void exerciseReopen()
     obs_frontend_set_current_preview_scene(samePreview);
     obs_source_release(samePreview);
     if (window) window->close();
-    record("close_hidden", findWindow("OBS Multiview Plus 0.5.0 Controller") == nullptr);
+    record("close_hidden", findWindow(QString::fromUtf8(mv::WindowTitle)) == nullptr);
     QTimer::singleShot(300, qApp, [] {
         if (launchAction) launchAction->trigger();
         QTimer::singleShot(1000, qApp, [] {
-            auto *reopened = findWindow("OBS Multiview Plus 0.5.0 Controller");
+            auto *reopened = findWindow(QString::fromUtf8(mv::WindowTitle));
             record("reopen_visible", reopened != nullptr);
             capture(reopened, "reopened");
             checkSceneAnchor("reopened");
@@ -303,7 +306,7 @@ void exerciseReopen()
             }
             record("simultaneous_pgm_pvw_program_priority", bothRed);
             if (reopened) reopened->close();
-            record("second_close_hidden", findWindow("OBS Multiview Plus 0.5.0 Controller") == nullptr);
+            record("second_close_hidden", findWindow(QString::fromUtf8(mv::WindowTitle)) == nullptr);
             if (launchAction) launchAction->trigger();
             QTimer::singleShot(300, qApp, exerciseCollectionReload);
         });
@@ -312,7 +315,7 @@ void exerciseReopen()
 void editSettings()
 {
     checkSceneAnchor("initial");
-    auto *window = findWindow("OBS Multiview Plus 0.5.0 Controller");
+    auto *window = findWindow(QString::fromUtf8(mv::WindowTitle));
     record("multiview_visible", window != nullptr);
     capture(window, "initial");
     if (!window) { finish(); return; }
@@ -325,6 +328,8 @@ void editSettings()
     QTimer::singleShot(600, qApp, [] {
         auto *dialog = qobject_cast<QDialog *>(findWindow(QStringLiteral("멀티뷰 설정")));
         record("settings_dialog", dialog != nullptr);
+        auto *identity = dialog ? dialog->findChild<QLabel *>("creatorVersionLabel") : nullptr;
+        record("creator_version_settings_visible", identity && identity->isVisible() && identity->text() == QString::fromUtf8(mv::Identity));
         if (!dialog) { finish(); return; }
         auto *table = dialog->findChild<QTableWidget *>();
         record("settings_table_default_10", table && table->rowCount() == 10);
