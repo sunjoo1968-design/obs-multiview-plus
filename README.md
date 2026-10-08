@@ -1,24 +1,15 @@
 # Sunjoo OBS Link Multiview
 
-제작자 **SunjooAn** · 현재 버전 **0.5.3**. [통합 버전 안내](docs/OBS_LINK_SUITE.md).
+제작자 **SunjooAn** · 버전 **0.5.3** · Windows x64 / OBS 32.2.2
 
-# OBS Multiview Plus
-
-Windows x64 · OBS Studio 32.2.2 전용 새 버전 **0.5.2 Hybrid**.
-OBS 네이티브 렌더링 API를 사용하는 별도 멀티뷰 플러그인입니다.
-
-제작자: **SunjooAn** · 현재 버전: **0.5.2 Hybrid**. 창 제목·하단 상태 표시와 설정창에 항상 함께 표시하며 전체 화면에서도 하단 표기를 유지합니다.
-
-0.5.2 Hybrid는 Camera MIX Hybrid 0.1.0의 소스 복제 ON에서 **실제 PGM 복제 화면**을 기준으로 카메라 장면·소스 타일의 적색을 표시합니다. Preview 변경과 분리하며 ME2와 기존 명시적 탈리 소스 지정, 레이아웃/UUID를 유지합니다. [새 버전 검증·설치 안내](docs/04-report/release-0.5.2.md).
-
-기존 [0.5.1 Controller 정식 릴리즈](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.5.1)와 [0.4.0](https://github.com/sunjoo1968-design/obs-multiview-plus/releases/tag/v0.4.0)은 보존합니다. 0.5.2는 로컬 배포 패키지로 제공하며 이번 작업에서 현장 OBS 설치본과 탈리는 변경하지 않았습니다. 기존 종료 메모리 조사 범위는 [조사 결과](docs/03-analysis/memory-leak-audit.report.md)를 참고하세요.
+네이티브 멀티뷰 플러그인입니다. Controller 0.1.1의 소스 복제에서 실제 PGM·PVW를 따로 추적하며 Tally 1.6.0-obs.5와 동일 경로 판정을 검증했습니다. [통합 안내](docs/OBS_LINK_SUITE.md) · [검증 결과](docs/04-report/obs-link-multiview.md).
 
 ## 설치
 
 1. OBS를 종료합니다.
 2. 배포 ZIP의 `obs-plugins`와 `data` 폴더를 OBS 설치 폴더에 합칩니다.
    기본 위치는 `C:\Program Files\obs-studio`입니다.
-3. OBS를 실행하고 **도구 → Multiview Plus**를 선택합니다.
+3. OBS를 실행하고 **도구 → Sunjoo OBS Link Multiview**를 선택합니다.
 
 기존 OBS 파일을 교체하지 않습니다. 삭제할 때는 `obs-plugins/64bit/obs-multiview-plus.dll`과
 `data/obs-plugins/obs-multiview-plus`만 제거합니다. OBS 및 Qt DLL은 배포 ZIP에 포함하지 않습니다.
@@ -42,7 +33,7 @@ OBS 네이티브 렌더링 API를 사용하는 별도 멀티뷰 플러그인입�
 
 이름 글자는 항상 흰색입니다. 이름 상자의 배경은 기본 검정, 프로그램 빨강, 프리뷰 초록입니다. 양쪽에 포함되면 프로그램을 우선하여 배경과 테두리 네 변을 모두 빨강으로 표시합니다.
 
-## Camera MIX Controller 1.3.1 연동
+## Sunjoo OBS Link Controller 연동
 
 ME1의 Source Switcher와 ME2~ME8의 private Fade 출력 뒤에 있는 카메라를 실제 출력 경로로 추적합니다. 공개 장면 이름이나 ME 선택값을 탈리 기준으로 추측하지 않습니다.
 
@@ -53,13 +44,13 @@ ME1의 Source Switcher와 ME2~ME8의 private Fade 출력 뒤에 있는 카메라
 - 여러 출력 경로 중 하나라도 실제로 표시되면 해당 카메라가 포함된 것으로 판정합니다. 프로그램 색상 우선 규칙과 기존 프리셋/클릭 설정은 유지합니다.
 - 가짜 장면·탈리 신호 소스를 만들지 않으며 컨트롤러 선택을 바꾸지 않습니다. 별도 카메라 제어 화면은 추가하지 않았습니다.
 
-기존 0.4.0 설치본은 자동 교체하지 않습니다. 현장 적용 전 별도 OBS 환경에서 확인하세요. 외부 탈리 허브·리스너 연동 확장은 보류 중입니다.
+현장 설치본은 자동 교체하지 않습니다. Tally native 실제 경로 옵션과 함께 사용하는 복제 출력도 검증했습니다.
 검증 방법과 한계: [Controller 검증 보고서](docs/04-report/controller-integration.report.md).
 ## 탈리와 통계
 
 빨강은 프로그램에, 초록은 프리뷰에 포함된 항목입니다. 둘 다 포함되면 프로그램을 우선하여 테두리 전체를 빨강으로 표시합니다.
 장면 목록의 선택 하이라이트가 아닌 **눈 아이콘의 표시 상태와 방송/프리뷰 출력 경로**를 기준으로 합니다.
-중첩 장면과 그룹은 표시가 켜진 경로를 깊이에 관계없이 재귀 확인하며, 숨긴 부모 아래의 소스는 탈리를 끕니다.
+중첩 장면과 그룹은 표시가 켜진 경로를 표시된 경로를 반복 탐색으로 확인(쿼리 노드 한도 8192)하며, 숨긴 부모 아래의 소스는 탈리를 끕니다.
 
 예를 들어 `+cam2 #02 → cam02` 구조에서 다음 경우를 모두 처리합니다.
 
@@ -95,7 +86,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 공식 OBS 32.2.2 헤더와 OBS 배포에 맞는 Qt 6.11.1 개발 파일을 `.deps`에 내려받아 SHA256을 검증합니다.
 설치된 OBS DLL의 공개 export로 import library를 생성하므로 OBS 전체를 다시 빌드할 필요가 없습니다.
 OBS 위치가 다르면 `-ObsPath 'D:\OBS'`를 지정합니다.
-최종 결과: `release/0.5.1/`에 설치 ZIP, DLL, 소스 ZIP, 설명서와 SHA256 목록을 모읍니다.
+최종 결과: `release/`에 설치 ZIP, DLL, 소스 ZIP, 설명서와 SHA256 목록을 모읍니다.
 
 실제 OBS 구조를 재현하는 격리 테스트는 빌드 후 다음으로 실행합니다.
 
