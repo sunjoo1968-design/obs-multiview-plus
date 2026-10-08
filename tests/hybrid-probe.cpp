@@ -48,7 +48,7 @@ void tick()
         if (!file.open(QIODevice::WriteOnly)) return;
         file.write(QJsonDocument(mv::toJson(config)).toJson()); if (!file.commit()) return;
         for (auto *action : main->findChildren<QAction *>())
-            if (action->text() == "Multiview Plus") { action->trigger(); opened = true; break; }
+            if (action->text() == "Sunjoo OBS Link Multiview") { action->trigger(); opened = true; break; }
     }
     QJsonArray rows;
     for (auto *window : QApplication::topLevelWidgets()) {

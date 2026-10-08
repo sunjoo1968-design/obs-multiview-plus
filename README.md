@@ -1,3 +1,7 @@
+# Sunjoo OBS Link Multiview
+
+제작자 **SunjooAn** · 현재 버전 **0.5.3**. [통합 버전 안내](docs/OBS_LINK_SUITE.md).
+
 # OBS Multiview Plus
 
 Windows x64 · OBS Studio 32.2.2 전용 새 버전 **0.5.2 Hybrid**.

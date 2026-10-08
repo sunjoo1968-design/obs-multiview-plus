@@ -109,6 +109,14 @@ int main()
     clonedScene.children[0].second=false; originalScene.children[0].second=true;
     check(!cloneOn(&originalLeaf), "clone hidden item never borrows Preview visibility");
     check(!cloneOn(&cam01), "unrelated camera is not promoted by alias");
+    std::vector<Node> deep(4096);
+    for (size_t i=0; i+1<deep.size(); ++i) deep[i].children={{&deep[i+1],true}};
+    check(visible(&deep.front(), &deep.back()), "deep scene graph uses no recursive stack");
+    deep.back().children={{&deep.front(),true}};
+    check(!visible(&deep.front(), &camera), "deep cycle terminates");
+    std::vector<Node> excessive(8193);
+    for (size_t i=0; i+1<excessive.size(); ++i) excessive[i].children={{&excessive[i+1],true}};
+    check(!visible(&excessive.front(), &excessive.back()), "over-limit graph fails closed");
     if (!failed)
         std::cout << total << " tally scenarios passed\n";
     return failed ? 1 : 0;

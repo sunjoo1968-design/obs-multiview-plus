@@ -37,7 +37,7 @@ void cycle()
     QTimer::singleShot(300, qApp, [] {
         bool closed = false;
         for (auto *widget : QApplication::topLevelWidgets())
-            if (widget->windowTitle().startsWith("OBS Multiview Plus") && widget->isVisible()) {
+            if (widget->windowTitle().startsWith("Sunjoo OBS Link Multiview") && widget->isVisible()) {
                 widget->close(); closed = true;
             }
         if (!closed) { result["opened"] = false; finish(); return; }
@@ -57,7 +57,7 @@ void start()
         auto *main = static_cast<QWidget *>(obs_frontend_get_main_window());
         bool opened = false;
         for (auto *action : main->findChildren<QAction *>())
-            if (action->text() == "Multiview Plus") { launch = action; opened = true; break; }
+            if (action->text() == "Sunjoo OBS Link Multiview") { launch = action; opened = true; break; }
         result["opened"] = opened;
         cycles = qEnvironmentVariableIntValue("MV_LEAK_CYCLES");
         if (cycles < 1 || cycles > 40) cycles = 1;

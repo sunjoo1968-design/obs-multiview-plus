@@ -250,7 +250,7 @@ bool obs_module_load(void)
 
 void obs_module_post_load(void)
 {
-	menuAction = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction("Multiview Plus"));
+	menuAction = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction("Sunjoo OBS Link Multiview"));
 	if (!menuAction) return;
 	QObject::connect(menuAction, &QAction::triggered, menuAction, [] {
 		if (!window) window = new MultiviewWindow;

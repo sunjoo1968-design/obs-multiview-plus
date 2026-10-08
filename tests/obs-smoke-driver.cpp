@@ -80,7 +80,7 @@ QWidget *findWindow(const QString &title)
 {
     for (auto *widget : QApplication::topLevelWidgets())
         if ((widget->windowTitle() == title || (qEnvironmentVariableIsSet("MV_TEST_LEGACY_VERSION") &&
-             title.startsWith("OBS Multiview Plus") && widget->windowTitle() == "OBS Multiview Plus")) && widget->isVisible()) return widget;
+             title.startsWith("Sunjoo OBS Link Multiview") && widget->windowTitle() == "Sunjoo OBS Link Multiview")) && widget->isVisible()) return widget;
     return nullptr;
 }
 void capture(QWidget *widget, const QString &name)
@@ -401,7 +401,7 @@ void startLegacyChecks()
     exerciseTallyGraphs();
     auto *mainWindow = static_cast<QWidget *>(obs_frontend_get_main_window());
     if (mainWindow) for (auto *action : mainWindow->findChildren<QAction *>())
-        if (action->text() == "Multiview Plus") { launchAction = action; break; }
+        if (action->text() == "Sunjoo OBS Link Multiview") { launchAction = action; break; }
     record("tools_action", launchAction != nullptr);
     if (!launchAction) { finish(); return; }
     launchAction->trigger();

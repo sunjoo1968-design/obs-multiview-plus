@@ -28,3 +28,5 @@ try {
     } | Set-Content -LiteralPath "$destination/SHA256SUMS.txt" -Encoding ascii
     Write-Output "Release: $destination"
 } finally { Pop-Location }
+
+if (Test-Path -LiteralPath "$PSScriptRoot/package-obs-link.ps1") { & "$PSScriptRoot/package-obs-link.ps1" }

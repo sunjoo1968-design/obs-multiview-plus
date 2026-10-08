@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_set>
+#include <vector>
 
 namespace mv {
 // enumerate(node, visitor) visits each edge as visitor(child, visible).
@@ -10,24 +11,20 @@ bool graphContainsVisible(Node root, Node target, Enumerate enumerate, Match mat
 {
     if (!root || !target)
         return false;
+    // Iterative traversal avoids stack exhaustion with deeply nested scenes.
+    // A bounded query fails closed rather than guessing an on-air camera.
     std::unordered_set<Node> visited;
-    bool found = false;
-    auto walk = [&](auto &&self, Node node) -> void {
-        if (!node || found)
-            return;
-        if (match(node, target)) {
-            found = true;
-            return;
-        }
-        if (!visited.insert(node).second)
-            return;
+    std::vector<Node> pending{root};
+    while (!pending.empty()) {
+        Node node = pending.back(); pending.pop_back();
+        if (!node || !visited.insert(node).second) continue;
+        if (visited.size() > 8192) return false;
+        if (match(node, target)) return true;
         enumerate(node, [&](Node child, bool visible) {
-            if (visible)
-                self(self, child);
+            if (visible && child && !visited.count(child)) pending.push_back(child);
         });
-    };
-    walk(walk, root);
-    return found;
+    }
+    return false;
 }
 
 template<typename Node, typename Enumerate>
@@ -43,19 +40,20 @@ Node graphUniqueVisibleLeaf(Node root, Enumerate enumerate, IsVideoLeaf isVideoL
 {
     std::unordered_set<Node> visited;
     std::unordered_set<Node> leaves;
-    auto walk = [&](auto &&self, Node node) -> void {
-        if (!node || leaves.size() > 1 || !visited.insert(node).second)
-            return;
+    std::vector<Node> pending{root};
+    while (!pending.empty()) {
+        Node node = pending.back(); pending.pop_back();
+        if (!node || !visited.insert(node).second) continue;
+        if (visited.size() > 8192) return Node{};
         if (isVideoLeaf(node)) {
             leaves.insert(node);
-            return;
+            if (leaves.size() > 1) return Node{};
+            continue;
         }
         enumerate(node, [&](Node child, bool visible) {
-            if (visible)
-                self(self, child);
+            if (visible && child && !visited.count(child)) pending.push_back(child);
         });
-    };
-    walk(walk, root);
+    }
     return leaves.size() == 1 ? *leaves.begin() : Node{};
 }
 

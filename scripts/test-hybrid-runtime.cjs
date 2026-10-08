@@ -42,6 +42,20 @@ for(const pgm of [1,2]){
  await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${pgm}`});await pause(250);
  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
+ if(process.env.MV_TEST_TALLY_VERSION){
+  const response=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'});
+  const data=response.responseData;assert(data.ready&&data.version===process.env.MV_TEST_TALLY_VERSION);
+  assert(data.suite==='Sunjoo OBS Link');
+  assert(data['camera-mix-hybrid'].includes('Sunjoo OBS Link Controller'));
+  assert(data['obs-multiview-plus'].includes('Sunjoo OBS Link Multiview'));
+  for(const [bus,camera] of [['program',pgm],['preview',3-pgm]]){
+   const name=`Test Scene ${camera}`;assert(data[`${bus}Scenes`].some(x=>x.name===name));
+   const view=data[`${bus}Views`].find(x=>x.name===name);
+   assert(view&&view.visible.some(x=>x.name===`Test Camera ${camera}`));
+   assert(!data[`${bus}Scenes`].some(x=>x.name===`Test Scene ${3-camera}`));
+  }
+  console.log(`PASS Sunjoo OBS Link integration: Tally and Multiview agree on PGM ${pgm}/PVW ${3-pgm}`);
+ }
  const rows=await checkTiles(pgm);fs.writeFileSync(path.join(path.dirname(state),`tile-state-pgm${pgm}.json`),JSON.stringify(rows,null,2));
  console.log(`PASS actual Multiview Hybrid: ME1 PGM scene/source ${pgm} RED, Preview ${3-pgm} GREEN`);
 }
