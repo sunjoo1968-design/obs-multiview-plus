@@ -38,7 +38,8 @@ try{
 for(let i=0;i<100;i++){assert(child.exitCode===null);client=new Client();try{await client.connect(`ws://127.0.0.1:${port}`,password);break;}catch{client.close();client=null;await pause(150);}}
 assert(client);for(let i=0;i<100&&!fs.existsSync(ready);i++)await pause(100);assert(fs.existsSync(ready),'Hybrid setup did not finish');
 await client.call('SetStudioModeEnabled',{studioModeEnabled:true});
-for(const pgm of [1,2]){
+const repeats=Number(process.env.MV_REPEAT_CYCLES||1);assert(Number.isInteger(repeats)&&repeats>=1&&repeats<=200);
+for(let iteration=0;iteration<repeats;iteration++)for(const pgm of [1,2]){
  await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${pgm}`});await pause(250);
  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
@@ -46,6 +47,7 @@ for(const pgm of [1,2]){
   const response=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'});
   const data=response.responseData;assert(data.ready&&data.version===process.env.MV_TEST_TALLY_VERSION);
   assert(data.suite==='Sunjoo OBS Link');
+  assert(data.suite_contract===2&&data['camera-mix-hybrid_contract']===2&&data['obs-multiview-plus_contract']===2,'Module contract mismatch');
   assert(data['camera-mix-hybrid'].includes('Sunjoo OBS Link Controller'));
   assert(data['obs-multiview-plus'].includes('Sunjoo OBS Link Multiview'));
   for(const [bus,camera] of [['program',pgm],['preview',3-pgm]]){
@@ -58,6 +60,44 @@ for(const pgm of [1,2]){
  }
  const rows=await checkTiles(pgm);fs.writeFileSync(path.join(path.dirname(state),`tile-state-pgm${pgm}.json`),JSON.stringify(rows,null,2));
  console.log(`PASS actual Multiview Hybrid: ME1 PGM scene/source ${pgm} RED, Preview ${3-pgm} GREEN`);
+}
+if(process.env.MV_TEST_MIX_TAKE==='1'){
+ for(const bank of [1,2]){
+  const sceneName=`Hybrid ME${bank} ${bank===1?'PGM':'SUB'} Output`;
+  await client.call('TriggerHotkeyByName',{hotkeyName:'sunjoo_obs_link_test_cut'});
+  await client.call('TriggerHotkeyByName',{hotkeyName:'camera_mix_hybrid.camera_1'});await pause(250);
+  await client.call('SetCurrentPreviewScene',{sceneName});
+  await client.call('TriggerHotkeyByName',{hotkeyName:'sunjoo_obs_link_test_mix'});
+  await client.call('TriggerHotkeyByName',{hotkeyName:'camera_mix_hybrid.camera_2'});await pause(450);
+  await client.call('TriggerStudioModeTransition');await pause(400);
+  await client.call('SetCurrentPreviewScene',{sceneName:'Test Scene 1'});
+  const snapshot=async()=>{const r=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'});assert(r.responseData.ready);return r.responseData;};
+  const data=await snapshot(),visible=new Set(data.programViews.flatMap(x=>x.visible.map(y=>y.name)));
+  assert(visible.has('Test Camera 1')&&visible.has('Test Camera 2'),JSON.stringify(data.programViews));
+  let both=false;for(let i=0;i<8;i++){const rows=JSON.parse(fs.readFileSync(state,'utf8'));both=['Test Camera 1','Test Camera 2'].every(name=>rows.some(x=>x.name===name&&x.red));if(both)break;await pause(80);}
+  assert(both,'Multiview did not report both PGM contributions during captured MIX');
+  await pause(1800);await checkTiles(2);
+  const completed=await snapshot(),last=new Set(completed.programViews.flatMap(x=>x.visible.map(y=>y.name)));
+  assert(last.has('Test Camera 2')&&!last.has('Test Camera 1'),JSON.stringify(completed.programViews));
+  console.log(`PASS actual ME${bank} mid-MIX TAKE: both PGM contributions, independent completion, outgoing camera OFF`);
+ }
+ await client.call('TriggerHotkeyByName',{hotkeyName:'sunjoo_obs_link_test_cut'});
+}
+const soak=Number(process.env.MV_SOAK_SECONDS||0);assert(Number.isFinite(soak)&&soak>=0&&soak<=3600);
+if(soak){
+ const deadline=Date.now()+soak*1000;let cycles=0,reconnects=0;
+ while(Date.now()<deadline){
+  const pgm=cycles%2+1;
+  await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${pgm}`});await pause(250);
+  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
+  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
+  await checkTiles(pgm);
+  const response=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'}),data=response.responseData;
+  assert(data.ready&&data.programScenes.some(x=>x.name===`Test Scene ${pgm}`)&&!data.programScenes.some(x=>x.name===`Test Scene ${3-pgm}`));
+  if(++cycles%20===0){client.close();client=new Client();await client.connect(`ws://127.0.0.1:${port}`,password);++reconnects;}
+ }
+ fs.writeFileSync(path.join(path.dirname(state),'soak-result.json'),JSON.stringify({seconds:soak,cycles,reconnects,passed:true},null,2));
+ console.log(`PASS OBS Link soak: ${soak}s, ${cycles} TAKE cycles, ${reconnects} authenticated reconnects`);
 }
 const result=spawnSync(python,[path.join(root,'tests/close-hybrid-obs.py'),String(child.pid),exe],{windowsHide:true,encoding:'utf8'});assert(result.status===0,result.stderr);
 assert.strictEqual(await Promise.race([exited,pause(15000).then(()=>{throw Error('Normal shutdown timeout');})]),0);

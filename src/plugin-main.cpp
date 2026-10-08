@@ -28,6 +28,7 @@
 #include <QStatusBar>
 
 OBS_DECLARE_MODULE()
+MODULE_EXPORT uint32_t sunjoo_obs_link_contract(void) { return 2; }
 MODULE_EXPORT const char *obs_module_description(void)
 {
 	return "Custom native multiview with flexible layouts and visibility tally";

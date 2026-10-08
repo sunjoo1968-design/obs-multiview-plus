@@ -130,20 +130,20 @@ inline bool sourceOnRoot(obs_source_t *root, obs_source_t *target,
                 self(self, edge.source.get(), source, depth + 1);
             }
         };
-        auto walk = [&](auto &&self, obs_source_t *node, size_t depth) -> void {
+        auto walk = [&](auto &&self, obs_source_t *node, size_t depth, bool snapshotPath = false) -> void {
             if (!node || !visited.insert(node).second) return;
             if (depth > 128 || visited.size() > 8192) return;
             const char *id = obs_source_get_unversioned_id(node);
-            if (id && !strcmp(id, "camera_mix_hybrid_output") && obs_obj_is_private(node)) {
-                for (const auto &edge : children(node)) if (edge.visible) {
-                    std::unique_ptr<obs_data_t, decltype(&obs_data_release)> meta(obs_source_get_private_settings(edge.source.get()), obs_data_release);
-                    const char *uuid = obs_data_get_string(meta.get(), "camera_mix_hybrid_original_uuid");
-                    if (!uuid || !*uuid || strlen(uuid) > 64) continue;
+            snapshotPath = snapshotPath || (id && !strcmp(id, "camera_mix_hybrid_output") && obs_obj_is_private(node));
+            if (snapshotPath && obs_obj_is_private(node)) {
+                std::unique_ptr<obs_data_t, decltype(&obs_data_release)> meta(obs_source_get_private_settings(node), obs_data_release);
+                const char *uuid = obs_data_get_string(meta.get(), "camera_mix_hybrid_original_uuid");
+                if (uuid && *uuid && strlen(uuid) <= 64) {
                     SourceRef original(obs_get_source_by_uuid(uuid), obs_source_release);
-                    if (original) pair(pair, edge.source.get(), original.get(), 0);
+                    if (original) pair(pair, node, original.get(), 0);
                 }
             }
-            for (const auto &edge : children(node)) if (edge.visible) self(self, edge.source.get(), depth + 1);
+            for (const auto &edge : children(node)) if (edge.visible) self(self, edge.source.get(), depth + 1, snapshotPath);
         };
         walk(walk, root, 0);
 

@@ -1,8 +1,8 @@
 # Sunjoo OBS Link Multiview
 
-제작자 **SunjooAn** · 버전 **0.5.3** · Windows x64 / OBS 32.2.2
+제작자 **SunjooAn** · 버전 **0.5.4** · Windows x64 / OBS 32.2.2
 
-네이티브 멀티뷰 플러그인입니다. Controller 0.1.1의 소스 복제에서 실제 PGM·PVW를 따로 추적하며 Tally 1.6.0-obs.5와 동일 경로 판정을 검증했습니다. [통합 안내](docs/OBS_LINK_SUITE.md) · [검증 결과](docs/04-report/obs-link-multiview.md).
+네이티브 멀티뷰 플러그인입니다. Controller 0.1.2의 소스 복제에서 실제 PGM·PVW를 따로 추적하며 Tally 1.6.0-obs.6와 동일 경로 판정을 검증했습니다. [통합 안내](docs/OBS_LINK_SUITE.md) · [검증 결과](docs/04-report/obs-link-multiview.md).
 
 ## 설치
 
