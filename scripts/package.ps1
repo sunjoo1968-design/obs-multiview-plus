@@ -14,7 +14,14 @@ try {
     if (Test-Path -LiteralPath $releaseNotes) {
         Copy-Item -LiteralPath $releaseNotes -Destination "$destination/RELEASE-NOTES.md" -Force
     }
-    Compress-Archive -Path src,tests,scripts,docs,CMakeLists.txt,README.md,LICENSE -DestinationPath "$destination/obs-multiview-plus-$version-source.zip" -Force
+    # Public source staging never includes local resume history or agent state.
+    $publicSourceStage = Join-Path $projectRoot ('build/package-source-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Force $publicSourceStage,(Join-Path $publicSourceStage 'docs') | Out-Null
+    Copy-Item -LiteralPath src,tests,scripts,CMakeLists.txt,README.md,LICENSE -Destination $publicSourceStage -Recurse
+    Get-ChildItem -LiteralPath docs | Where-Object { $_.Name -notlike 'LOCAL-*' } | ForEach-Object {
+        Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $publicSourceStage 'docs') -Recurse
+    }
+    Compress-Archive -Path "$publicSourceStage/*" -DestinationPath "$destination/obs-multiview-plus-$version-source.zip" -Force
     Get-ChildItem -LiteralPath $destination -File | Where-Object Name -ne SHA256SUMS.txt | Sort-Object Name | ForEach-Object {
         $hash = Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256
         "$($hash.Hash.ToLowerInvariant())  $($_.Name)"

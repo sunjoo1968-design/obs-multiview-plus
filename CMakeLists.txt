@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(obs-multiview-plus VERSION 0.5.1 LANGUAGES CXX)
+project(obs-multiview-plus VERSION 0.5.2 LANGUAGES CXX)
 
 if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Windows x64 is required")
@@ -35,6 +35,12 @@ if(MV_BUILD_SMOKE_DRIVER)
   target_compile_options(obs-multiview-smoke PRIVATE /W4 /utf-8)
   target_compile_definitions(obs-multiview-smoke PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
   set_target_properties(obs-multiview-smoke PROPERTIES PREFIX "")
+  add_library(obs-multiview-hybrid-probe MODULE tests/hybrid-probe.cpp src/layout-model.cpp)
+  target_include_directories(obs-multiview-hybrid-probe PRIVATE src)
+  target_link_libraries(obs-multiview-hybrid-probe PRIVATE obs-sdk Qt6::Widgets)
+  target_compile_options(obs-multiview-hybrid-probe PRIVATE /W4 /utf-8)
+  set_target_properties(obs-multiview-hybrid-probe PROPERTIES PREFIX "")
+
 endif()
 
 add_library(obs-multiview-plus MODULE

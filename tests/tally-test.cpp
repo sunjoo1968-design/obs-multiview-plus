@@ -94,6 +94,21 @@ int main()
     check(!linked(&pgmB, &cameraScene), "multiple cameras cannot choose arbitrary leaf");
     check(linked(&pgmA, &cam02) || linked(&logoOnlyProgram, &cam02), "transition linked outgoing camera");
     check(linked(&logoOnlyProgram, &cameraScene, &cam02) || linked(&pgmB, &cameraScene, &cam02), "transition linked incoming camera");
+    Node originalLeaf, clonedLeaf;
+    Node originalScene{{{&originalLeaf,false}},true}, clonedScene{{{&clonedLeaf,true}},true};
+    auto cloneMatch = [&](Node *a, Node *b) {
+        return a == b || (a == &clonedLeaf && b == &originalLeaf) || (a == &clonedScene && b == &originalScene);
+    };
+    auto cloneOn = [&](Node *wanted) {
+        return mv::graphContainsVisible(&clonedScene,wanted,[](Node *n,auto visit){
+            for (auto [child,shown]:n->children) visit(child,shown);
+        },cloneMatch);
+    };
+    check(cloneOn(&originalScene), "clone aliases the camera scene identity");
+    check(cloneOn(&originalLeaf), "clone aliases source even after Preview hides original");
+    clonedScene.children[0].second=false; originalScene.children[0].second=true;
+    check(!cloneOn(&originalLeaf), "clone hidden item never borrows Preview visibility");
+    check(!cloneOn(&cam01), "unrelated camera is not promoted by alias");
     if (!failed)
         std::cout << total << " tally scenarios passed\n";
     return failed ? 1 : 0;

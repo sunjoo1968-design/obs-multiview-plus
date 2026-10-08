@@ -39,6 +39,8 @@ struct SourceRef {
 
 bool onProgram(obs_source_t *target, obs_source_t *explicitSource)
 {
+    SourceRef output(obs_get_output_source(0));
+    if (output.value) return sourceOnRoot(output.value, target, explicitSource);
     SourceRef current(obs_frontend_get_current_scene());
     SourceRef transition(obs_frontend_get_current_transition());
     if (transition.value && obs_transition_is_active(transition.value)) {
