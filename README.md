@@ -1,108 +1,151 @@
-# Sunjoo OBS Link Multiview
+# Sunjoo OBS Link Multiview – macOS-Fork
 
-제작자 **SunjooAn** · 버전 **0.5.4** · Windows x64 / OBS 32.2.2
+Multiview-Plugin für OBS Studio mit Tally-Rahmen, frei anordenbaren Kacheln und Vollbild auf einem
+wählbaren Monitor.
 
-네이티브 멀티뷰 플러그인입니다. Controller 0.1.2의 소스 복제에서 실제 PGM·PVW를 따로 추적하며 Tally 1.6.0-obs.6와 동일 경로 판정을 검증했습니다. [통합 안내](docs/OBS_LINK_SUITE.md) · [검증 결과](docs/04-report/obs-link-multiview.md).
+**Dies ist ein Fork für macOS (Intel und Apple Silicon, OBS 33) mit deutscher Oberfläche.**
+Das Original von **SunjooAn** ist ein reines Windows-Plugin mit koreanischer Oberfläche:
+[sunjoo1968-design/obs-multiview-plus](https://github.com/sunjoo1968-design/obs-multiview-plus).
+Funktionsumfang und Tally-Logik stammen aus dem Original (Version 0.5.4). Dieser Fork ergänzt:
 
-## 설치
+- macOS-Unterstützung (Bauskript, Plugin-Bundle, Vollbild, Darstellung der Videokacheln)
+- deutsche Oberfläche mit den Abkürzungen **PGM** (Programm) und **PVW** (Preview)
 
-1. OBS를 종료합니다.
-2. 배포 ZIP의 `obs-plugins`와 `data` 폴더를 OBS 설치 폴더에 합칩니다.
-   기본 위치는 `C:\Program Files\obs-studio`입니다.
-3. OBS를 실행하고 **도구 → Sunjoo OBS Link Multiview**를 선택합니다.
+Der Windows-Build aus dem Original funktioniert weiterhin, zeigt jetzt aber ebenfalls die deutsche Oberfläche.
 
-기존 OBS 파일을 교체하지 않습니다. 삭제할 때는 `obs-plugins/64bit/obs-multiview-plus.dll`과
-`data/obs-plugins/obs-multiview-plus`만 제거합니다. OBS 및 Qt DLL은 배포 ZIP에 포함하지 않습니다.
+## Installation auf dem Mac
 
-## 사용
+Kurzfassung (Details, Optionen und Fehlersuche in [docs/MACOS.md](docs/MACOS.md)):
 
-- **프리셋 1 — 장면·소스 4분할:** 프로그램·프리뷰 없이 2×2 네 칸을 사용합니다.
-- **프리셋 2 — ATEM형 2+8 (기본):** 상단 왼쪽 프리뷰·오른쪽 프로그램, 하단 4열×2행의 8칸입니다.
-- **레이아웃 설정**에서 16:9 / 9:16 및 추가 균등 분할 프리셋도 선택할 수 있습니다.
-- 각 칸은 프로그램, 프리뷰, 장면, 소스, OBS 통계, 빈칸, 시계, CPU / GPU (OBS) 중 선택할 수 있습니다.
-- 프로그램·프리뷰를 포함한 전체 칸은 최대 16개입니다.
-- 설정창 왼쪽 **배치 미리보기**에서 칸을 다른 칸으로 드래그하면 위치가 교환됩니다. 오른쪽 표에서 종류·장면/소스·이름·탈리 기준을 지정합니다.
-- **ATEM형의 프로그램 또는 프리뷰를 하단 작은 칸으로 드래그하면 큰 화면 2개가 아래로, 작은 화면 8개가 위로 이동합니다.** 반대로 드래그하면 원래 배치로 돌아갑니다.
-- 같은 크기의 칸끼리는 개별 위치를 교환합니다. 이름·선택한 장면/소스·탈리 기준은 유지됩니다. 저장을 눌러 반영하며 취소하면 기존 배치를 유지합니다.
-- 행·열·X/Y·너비·높이의 숫자 입력과 추가 프리셋 `상단 2 + 하단 4`, `상단 2 + 하단 8`은 제거했습니다. 기본 ATEM형 프리셋은 유지합니다.
-- **프리셋 내보내기/가져오기**로 사용자 배치를 JSON 파일에 보관합니다.
-- 모니터를 선택하고 **전체 화면**을 누릅니다. **Esc** 또는 우클릭 메뉴로 창 모드로 돌아갑니다.
-- 장면 클릭 전환은 기본 꺼짐입니다. 켜면 스튜디오 모드에서는 프리뷰를 선택하고, 일반 모드에서는 현재 장면을 바꿉니다.
-- 더블 클릭 방송 전환은 독립 옵션입니다. 스튜디오 모드에서는 현재 OBS 전환 효과를 실행하며, 일반 모드에서는 현재 장면을 바꿉니다.
-- 소스 칸을 클릭해도 방송 장면을 바꾸지 않습니다.
+1. Einmalig: Xcode Command Line Tools (`xcode-select --install`) und CMake 3.28 oder neuer installieren.
+2. Projekt herunterladen, OBS beenden.
+3. Im Terminal im Projektordner:
 
-이름 글자는 항상 흰색입니다. 이름 상자의 배경은 기본 검정, 프로그램 빨강, 프리뷰 초록입니다. 양쪽에 포함되면 프로그램을 우선하여 배경과 테두리 네 변을 모두 빨강으로 표시합니다.
+   ```bash
+   bash scripts/build-macos.sh --install
+   ```
 
-## Sunjoo OBS Link Controller 연동
+4. OBS starten, Menü **Werkzeuge → Sunjoo OBS Link Multiview**.
 
-ME1의 Source Switcher와 ME2~ME8의 private Fade 출력 뒤에 있는 카메라를 실제 출력 경로로 추적합니다. 공개 장면 이름이나 ME 선택값을 탈리 기준으로 추측하지 않습니다.
+Das Skript erkennt Version und Architektur der installierten OBS-App, lädt die passenden OBS-Header und
+Qt-Dateien (mit Prüfsumme), baut das Plugin und installiert es nach
+`~/Library/Application Support/obs-studio/plugins/obs-multiview-plus.plugin`.
+Jeder Mac baut sich sein Plugin selbst; nach einem OBS-Update mit neuer Qt-Version einfach neu bauen.
 
-- 실제 프로그램/프리뷰에서 보이는 장면·그룹·활성 소스를 따라갑니다. 방송에 포함되지 않은 ME의 선택만으로 빨강을 켜지 않습니다.
-- 카메라별 private view와 그룹, 원본 카메라까지 탐색하며 숨겨진 보관용 입력 장면은 제외합니다.
-- Fade MIX 중 실제 기여하는 이전/새 카메라는 함께 표시하고, 영상 전환 완료 후 이전 카메라는 해제합니다. 오디오 잔여 처리로 이전 참조가 남아도 영상 완료를 기준으로 합니다.
-- ME1 카메라 장면과 ME2 원본 카메라는 기존 **탈리 기준 소스** 선택으로 연결합니다. 단일 영상 원본만 있는 장면은 기존 자동 매핑도 유지합니다.
-- 여러 출력 경로 중 하나라도 실제로 표시되면 해당 카메라가 포함된 것으로 판정합니다. 프로그램 색상 우선 규칙과 기존 프리셋/클릭 설정은 유지합니다.
-- 가짜 장면·탈리 신호 소스를 만들지 않으며 컨트롤러 선택을 바꾸지 않습니다. 별도 카메라 제어 화면은 추가하지 않았습니다.
+Entfernen: den Ordner `obs-multiview-plus.plugin` aus `~/Library/Application Support/obs-studio/plugins` löschen.
 
-현장 설치본은 자동 교체하지 않습니다. Tally native 실제 경로 옵션과 함께 사용하는 복제 출력도 검증했습니다.
-검증 방법과 한계: [Controller 검증 보고서](docs/04-report/controller-integration.report.md).
-## 탈리와 통계
+## Bedienung
 
-빨강은 프로그램에, 초록은 프리뷰에 포함된 항목입니다. 둘 다 포함되면 프로그램을 우선하여 테두리 전체를 빨강으로 표시합니다.
-장면 목록의 선택 하이라이트가 아닌 **눈 아이콘의 표시 상태와 방송/프리뷰 출력 경로**를 기준으로 합니다.
-중첩 장면과 그룹은 표시가 켜진 경로를 표시된 경로를 반복 탐색으로 확인(쿼리 노드 한도 8192)하며, 숨긴 부모 아래의 소스는 탈리를 끕니다.
+- **Preset ① – Szenen/Quellen 4er-Raster:** vier Kacheln im 2×2-Raster, ohne PGM/PVW.
+- **Preset ② – ATEM-Stil (Standard):** oben links PVW, oben rechts PGM, darunter 8 Kacheln in 4 Spalten × 2 Zeilen.
+- In den **Layout-Einstellungen** gibt es zusätzlich Querformat 16:9 / Hochformat 9:16 und gleichmäßige
+  4er-, 9er- und 16er-Raster.
+- Jede Kachel kann PGM, PVW, Szene, Quelle, OBS-Statistik, Leer, Uhr oder CPU / GPU (OBS) sein.
+- Insgesamt sind höchstens 16 Kacheln möglich, PGM und PVW mitgezählt.
+- In der Layout-Vorschau links im Einstellungsdialog eine Kachel auf eine andere ziehen, um die Positionen
+  zu tauschen. In der Tabelle rechts werden Typ, Szene/Quelle, Anzeigename und Tally-Bezugsquelle festgelegt.
+- **Wird beim ATEM-Stil PGM oder PVW auf eine kleine Kachel gezogen, wandern die zwei großen Bilder nach
+  unten und die acht kleinen nach oben.** In umgekehrter Richtung zurückziehen stellt die ursprüngliche
+  Anordnung wieder her.
+- Gleich große Kacheln tauschen einzeln ihre Position. Name, gewählte Szene/Quelle und Tally-Bezug bleiben
+  erhalten. **Speichern** übernimmt die Änderung, **Abbrechen** behält die bisherige Anordnung.
+- Mit **Preset exportieren / Preset importieren** lassen sich eigene Layouts als JSON-Datei sichern und
+  übertragen, auch zwischen Windows und Mac.
+- Monitor auswählen und **Vollbild** drücken. **Esc** oder das Rechtsklick-Menü (**Fenstermodus**) kehrt
+  zum Fenster zurück.
+- **Szene per Klick wählen** ist standardmäßig aus. Eingeschaltet wählt ein Klick im Studio-Modus die PVW-Szene,
+  im normalen Modus wechselt er die aktuelle Szene.
+- **Doppelklick schaltet Sendung um** ist eine eigene Option. Im Studio-Modus führt ein Doppelklick den
+  aktuellen OBS-Übergang aus, im normalen Modus wechselt er die aktuelle Szene.
+- Ein Klick auf eine Quellen-Kachel ändert nie die Sendeszene.
 
-예를 들어 `+cam2 #02 → cam02` 구조에서 다음 경우를 모두 처리합니다.
+Die Namensschrift ist immer weiß. Der Hintergrund des Namensfelds ist schwarz, bei PGM rot und bei PVW grün.
+Ist eine Kachel in beiden enthalten, hat PGM Vorrang: Hintergrund und alle vier Rahmenseiten werden rot.
 
-1. `+cam2 #02` 장면을 프로그램으로 출력.
-2. `PGM → CAM-PGM 그룹 → +cam2 #02 → cam02` 경로만 표시.
-3. `하단-PGM → CAM-PGM-B 그룹 → cam02`처럼 카메라 원본을 직접 표시.
-4. 다른 행사 장면이 `하단-PGM`을 중첩하고 그 안의 그룹에서 `cam02`를 표시.
+## Zusammenspiel mit Sunjoo OBS Link Controller
 
-3·4번에서도 멀티뷰의 `+cam2 #02` 칸에 탈리가 켜집니다. 자동 연계는 해당 카메라 장면에 **표시 중인 영상 말단 소스가 유일할 때** 적용됩니다.
-카메라·로고 등 여러 소스를 함께 쓰는 복합 장면은 설정의 **탈리 기준 소스**에서 `cam02`를 지정하세요.
-이렇게 하면 여러 장면이 공유하는 로고 때문에 모든 카메라 탈리가 켜지는 문제를 피할 수 있습니다.
-탈리 기준을 직접 지정한 경우에는 그 소스의 출력 여부만 사용하며, 지정 소스가 삭제되면 탈리는 꺼집니다.
+Kameras hinter dem Source Switcher von ME1 und den privaten Fade-Ausgängen von ME2 bis ME8 werden über den
+tatsächlichen Ausgabepfad verfolgt. Öffentliche Szenennamen oder die ME-Auswahl werden nicht als Tally-Bezug
+erraten.
 
-Fade 전환 중에는 실제 기여 구간의 이전/다음 장면을 프로그램 탈리로 처리합니다. 다른 전환 종류는 활성 자식 경로를 기준으로 합니다.
-픽셀이 다른 소스에 가려지거나 필터로 투명해진 상태까지 계산하지는 않습니다.
-스튜디오 모드를 끄면 프리뷰 칸은 OBS 내장 멀티뷰와 같이 프로그램 영상을 표시합니다.
+- Verfolgt werden die in PGM/PVW tatsächlich sichtbaren Szenen, Gruppen und aktiven Quellen. Die bloße
+  Auswahl in einer ME, die nicht auf Sendung ist, schaltet kein Rot.
+- Durchsucht werden private Views und Gruppen je Kamera bis zur Originalkamera; versteckte Ablage-Szenen
+  für Eingänge werden ignoriert.
+- Während eines Fade-MIX werden die tatsächlich beteiligte alte und neue Kamera gemeinsam angezeigt; nach
+  Abschluss des Videoübergangs wird die alte Kamera freigegeben, auch wenn ein Audio-Nachlauf noch auf sie
+  verweist.
+- ME1-Kameraszenen und ME2-Originalkameras werden über die bestehende **Tally-Bezugsquelle** verknüpft.
+  Für Szenen mit nur einer Videoquelle bleibt die automatische Zuordnung erhalten.
+- Ist eine Kamera auf irgendeinem der Ausgabepfade tatsächlich sichtbar, gilt sie als enthalten. PGM-Vorrang,
+  Presets und Klick-Einstellungen bleiben unverändert.
+- Es werden keine Schein-Szenen oder Tally-Signalquellen angelegt und keine Controller-Auswahl verändert.
 
-통계 칸은 FPS, 렌더링 지연 프레임, 평균 렌더링 시간, 송출 상태 및 네트워크 드롭을 표시합니다.
-빈칸의 종류를 **시계**로 선택하면 PC의 날짜와 현재 시각을 표시합니다. **CPU / GPU (OBS)**는 OBS 프로세스의 CPU 사용률(전체 논리 CPU 대비)과 GPU 최대 엔진 사용률을 1초 주기로 표시합니다. PC 전체 사용량과는 다릅니다. GPU 드라이버/성능 카운터가 지원하지 않거나 측정 준비 중이면 측정 불가로 표시합니다. 자원 측정은 정보 칸이 보일 때 공유 백그라운드 작업으로 수행합니다. 인코딩 지연·비트레이트·오디오 미터는 포함되지 않습니다.
+Weitere Details zur Prüfung (auf Koreanisch): [Controller-Prüfbericht](docs/04-report/controller-integration.report.md).
 
-설정은 OBS의 플러그인 설정 폴더 `obs-multiview-plus/layout.json`에 저장됩니다.
-기존 저장 배치는 유지됩니다. 새 기본값을 적용하려면 설정에서 두 번째 프리셋을 적용하세요.
-장면·소스는 UUID로 식별합니다. 삭제된 대상이나 다른 장면 모음의 대상은 설정에서 다시 지정하세요.
+## Tally und Statistik
 
-## 빌드
+Rot bedeutet: in PGM enthalten, grün: in PVW enthalten. Ist beides der Fall, hat PGM Vorrang und der ganze
+Rahmen wird rot. Maßgeblich ist nicht die Markierung in der Szenenliste, sondern **der Sichtbarkeitsstatus
+(Augensymbol) und der Ausgabepfad von Sendung bzw. Preview**. Verschachtelte Szenen und Gruppen werden
+entlang der sichtbaren Pfade durchsucht (höchstens 8192 Knoten); Quellen unter einem ausgeblendeten Eltern-
+element schalten kein Tally.
 
-필수: Windows x64, Visual Studio 2022 C++ Build Tools 및 Windows SDK, CMake 3.28 이상, Node.js 20 이상, OBS 32.2.2.
+Beispiel mit der Struktur `+cam2 #02 → cam02` – alle folgenden Fälle werden erkannt:
+
+1. Die Szene `+cam2 #02` liegt auf PGM.
+2. Nur der Pfad `PGM → Gruppe CAM-PGM → +cam2 #02 → cam02` ist sichtbar.
+3. Die Kamera wird direkt gezeigt, z. B. `Unten-PGM → Gruppe CAM-PGM-B → cam02`.
+4. Eine andere Szene verschachtelt `Unten-PGM` und zeigt darin `cam02` über eine Gruppe.
+
+Auch in Fall 3 und 4 leuchtet das Tally der Kachel `+cam2 #02`. Die automatische Zuordnung greift, wenn in
+der Kameraszene **genau eine sichtbare Videoquelle** am Ende des Pfads liegt. Bei zusammengesetzten Szenen
+mit Kamera, Logo usw. in den Einstellungen als **Tally-Bezugsquelle** `cam02` angeben. So leuchten nicht
+alle Kamera-Tallys, nur weil mehrere Szenen dasselbe Logo verwenden. Mit festgelegter Bezugsquelle zählt nur
+deren Sichtbarkeit; wird sie gelöscht, bleibt das Tally aus.
+
+Während eines Fade-Übergangs gelten die tatsächlich beteiligte vorherige und nächste Szene als PGM. Bei
+anderen Übergängen zählt der aktive Pfad. Ob Pixel von anderen Quellen verdeckt oder durch Filter
+transparent sind, wird nicht berechnet. Ist der Studio-Modus aus, zeigt die PVW-Kachel wie das eingebaute
+OBS-Multiview das Programmbild.
+
+Die Statistik-Kachel zeigt FPS, verzögerte Frames, durchschnittliche Renderzeit, Stream-Status und
+Netzwerk-Drops. Eine Kachel vom Typ **Uhr** zeigt Datum und Uhrzeit des Rechners. **CPU / GPU (OBS)** zeigt
+im Sekundentakt die CPU-Auslastung des OBS-Prozesses (bezogen auf alle logischen Kerne), nicht die des
+ganzen Rechners. Die GPU-Auslastung gibt es nur unter Windows (meistbelastete GPU-Engine); auf dem Mac steht
+dort „nicht messbar“. Encoder-Verzögerung, Bitrate und Audiopegel sind nicht enthalten.
+
+Die Einstellungen liegen im Plugin-Einstellungsordner von OBS unter `obs-multiview-plus/layout.json`
+(Mac: `~/Library/Application Support/obs-studio/plugin_config/obs-multiview-plus/layout.json`).
+Szenen und Quellen werden über ihre UUID erkannt. Gelöschte Ziele oder Ziele aus einer anderen
+Szenensammlung müssen in den Einstellungen neu zugewiesen werden.
+
+## Windows-Build (aus dem Original)
+
+Voraussetzungen: Windows x64, Visual Studio 2022 C++ Build Tools und Windows SDK, CMake 3.28 oder neuer,
+Node.js 20 oder neuer, OBS 32.2.2.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build.ps1
 ```
 
-공식 OBS 32.2.2 헤더와 OBS 배포에 맞는 Qt 6.11.1 개발 파일을 `.deps`에 내려받아 SHA256을 검증합니다.
-설치된 OBS DLL의 공개 export로 import library를 생성하므로 OBS 전체를 다시 빌드할 필요가 없습니다.
-OBS 위치가 다르면 `-ObsPath 'D:\OBS'`를 지정합니다.
-최종 결과: `release/`에 설치 ZIP, DLL, 소스 ZIP, 설명서와 SHA256 목록을 모읍니다.
+Das Skript lädt die OBS-32.2.2-Header und Qt 6.11.1 nach `.deps` und prüft die SHA256-Summen. Installiert
+wird, indem die Ordner `obs-plugins` und `data` aus der erzeugten ZIP-Datei in den OBS-Ordner
+(standardmäßig `C:\Program Files\obs-studio`) kopiert werden. Der isolierte Laufzeittest
+(`scripts/test-runtime.ps1`) ist nur unter Windows verfügbar.
 
-실제 OBS 구조를 재현하는 격리 테스트는 빌드 후 다음으로 실행합니다.
+## Dokumentation, Prüfung und Lizenz
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/test-runtime.ps1
-```
+- [docs/MACOS.md](docs/MACOS.md) – Bauen, Installieren und Fehlersuche auf dem Mac (Deutsch)
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), [docs/OBS_LINK_SUITE.md](docs/OBS_LINK_SUITE.md) und die
+  Berichte unter `docs/` stammen aus dem Original und sind auf Koreanisch.
 
-`.local/runtime` 아래에 별도 portable OBS를 만들고 테스트용 컬러 장면·그룹으로 검증합니다.
-사용 중인 OBS의 장면 모음은 변경하지 않습니다. 테스트 드라이버는 배포 ZIP에 포함되지 않습니다.
+Ein erfolgreicher Build bedeutet nicht, dass Leistung und Tally an der echten Produktionsanlage geprüft sind.
+Bitte vor dem Einsatz in einer Sendung mit dem eigenen Setup testen.
 
-## 검증 및 라이선스
+Lizenz: GPL-2.0-or-later, siehe `LICENSE`. Original © SunjooAn.
 
-개발 구조와 검증 범위는 [개발 안내](docs/DEVELOPMENT.md)에 기록합니다.
-빌드 성공만으로 실제 방송 장비의 성능·탈리가 검증되었다고 간주하지 않습니다.
-GPL-2.0-or-later. `LICENSE` 참조.
-
-참고한 공식 구현: [OBS Multiview](https://github.com/obsproject/obs-studio/blob/32.2.2/frontend/components/Multiview.cpp),
+Verwendete offizielle OBS-Vorlagen:
+[OBS Multiview](https://github.com/obsproject/obs-studio/blob/32.2.2/frontend/components/Multiview.cpp),
 [OBS Projector](https://github.com/obsproject/obs-studio/blob/32.2.2/frontend/widgets/OBSProjector.cpp),
 [Frontend API](https://github.com/obsproject/obs-studio/blob/32.2.2/frontend/api/obs-frontend-api.h).

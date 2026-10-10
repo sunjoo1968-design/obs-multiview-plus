@@ -275,7 +275,7 @@ void exerciseReopen()
             if (tile->property("resourceText").isValid()) record("resource_displays_values_or_unavailable", tile->property("resourceText").toString().contains("CPU") && tile->property("resourceText").toString().contains("GPU"));
         }
         for (auto *action : window->findChildren<QAction *>())
-            if (action->text() == QStringLiteral("전체 화면")) { action->trigger(); break; }
+            if (action->text() == QStringLiteral("Vollbild")) { action->trigger(); break; }
         record("fullscreen_enter", window->isFullScreen());
         auto *identity = window->findChild<QLabel *>("creatorVersionLabel");
         record("creator_version_fullscreen_visible", identity && identity->isVisible() && identity->text() == QString::fromUtf8(mv::Identity));
@@ -321,12 +321,12 @@ void editSettings()
     if (!window) { finish(); return; }
     QAction *settings = nullptr;
     for (auto *action : window->findChildren<QAction *>())
-        if (action->text() == QStringLiteral("레이아웃 설정")) { settings = action; break; }
+        if (action->text() == QStringLiteral("Layout-Einstellungen")) { settings = action; break; }
     record("settings_action", settings != nullptr);
     if (!settings) { finish(); return; }
     // Install timer first: QAction enters QDialog::exec synchronously.
     QTimer::singleShot(600, qApp, [] {
-        auto *dialog = qobject_cast<QDialog *>(findWindow(QStringLiteral("멀티뷰 설정")));
+        auto *dialog = qobject_cast<QDialog *>(findWindow(QStringLiteral("Multiview-Einstellungen")));
         record("settings_dialog", dialog != nullptr);
         auto *identity = dialog ? dialog->findChild<QLabel *>("creatorVersionLabel") : nullptr;
         record("creator_version_settings_visible", identity && identity->isVisible() && identity->text() == QString::fromUtf8(mv::Identity));
@@ -337,7 +337,7 @@ void editSettings()
         record("no_coordinate_spinboxes", dialog->findChildren<QSpinBox *>().isEmpty());
         if (table) {
             auto *kind = qobject_cast<QComboBox *>(table->cellWidget(0, 0));
-            record("source_kind_preserved", kind && kind->findText(QStringLiteral("소스")) >= 0);
+            record("source_kind_preserved", kind && kind->findText(QStringLiteral("Quelle")) >= 0);
         }
         bool removedPresetsAbsent = true;
         for (auto *box : dialog->findChildren<QComboBox *>())

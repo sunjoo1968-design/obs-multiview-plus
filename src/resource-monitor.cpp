@@ -1,5 +1,6 @@
 #include "resource-monitor.hpp"
 
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -9,6 +10,11 @@
 #include <windows.h>
 #include <pdh.h>
 #include <pdhmsg.h>
+#else
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <unistd.h>
+#endif
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -19,6 +25,7 @@
 
 namespace mv {
 namespace {
+#ifdef _WIN32
 uint64_t ticks(const FILETIME &time)
 {
     return (uint64_t(time.dwHighDateTime) << 32) | time.dwLowDateTime;
@@ -69,6 +76,16 @@ struct GpuQuery {
         return std::isnan(busiest) ? unavailable : std::clamp(busiest, 0.0, 100.0);
     }
 };
+#else
+// User + system CPU time of this process in seconds, or -1 when unavailable.
+double processCpuSeconds()
+{
+    struct rusage usage {};
+    if (getrusage(RUSAGE_SELF, &usage) != 0) return -1.0;
+    return double(usage.ru_utime.tv_sec) + double(usage.ru_utime.tv_usec) / 1e6
+         + double(usage.ru_stime.tv_sec) + double(usage.ru_stime.tv_usec) / 1e6;
+}
+#endif
 } // namespace
 
 std::shared_ptr<ResourceMonitor> ResourceMonitor::acquire()
@@ -103,6 +120,38 @@ ResourceSnapshot ResourceMonitor::snapshot() const
     return snapshot_;
 }
 
+#ifndef _WIN32
+void ResourceMonitor::run() noexcept
+{
+    try {
+        const long online = sysconf(_SC_NPROCESSORS_ONLN);
+        const double processors = double(std::max<long>(1, online));
+        double previousCpu = processCpuSeconds();
+        auto previousTime = std::chrono::steady_clock::now();
+        for (;;) {
+            {
+                std::unique_lock<std::mutex> lock(mutex_);
+                if (wake_.wait_for(lock, std::chrono::seconds(1), [this] { return stopping_; })) break;
+            }
+            ResourceSnapshot next;
+            const double cpu = processCpuSeconds();
+            const auto now = std::chrono::steady_clock::now();
+            const double elapsed = std::chrono::duration<double>(now - previousTime).count();
+            if (cpu >= 0 && previousCpu >= 0 && cpu >= previousCpu && elapsed > 0)
+                next.cpuPercent = std::clamp((cpu - previousCpu) / (elapsed * processors) * 100.0, 0.0, 100.0);
+            previousCpu = cpu;
+            previousTime = now;
+            // No per-process GPU utilization is available here; gpuPercent stays NaN,
+            // which the tile shows as "unavailable" rather than as zero.
+            std::lock_guard<std::mutex> lock(mutex_);
+            snapshot_ = next;
+        }
+    } catch (...) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        snapshot_ = {};
+    }
+}
+#else
 void ResourceMonitor::run() noexcept
 {
     try {
@@ -139,4 +188,5 @@ void ResourceMonitor::run() noexcept
         snapshot_ = {}; // Allocation/provider errors remain local to diagnostics.
     }
 }
+#endif
 } // namespace mv

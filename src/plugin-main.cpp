@@ -23,6 +23,7 @@
 #include <QPointer>
 #include <QSaveFile>
 #include <QScreen>
+#include <QWindow>
 #include <QToolBar>
 #include <QLabel>
 #include <QStatusBar>
@@ -61,13 +62,13 @@ bool readLayout(const QString &path, mv::LayoutConfig &config, QString *error)
 		return false;
 	}
 	if (file.size() > 1024 * 1024) {
-		*error = QStringLiteral("설정 파일이 너무 큽니다.");
+		*error = QStringLiteral("Die Einstellungsdatei ist zu groß.");
 		return false;
 	}
 	QJsonParseError parseError;
 	const auto doc = QJsonDocument::fromJson(file.readAll(), &parseError);
 	if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
-		*error = QStringLiteral("올바른 JSON 설정 파일이 아닙니다.");
+		*error = QStringLiteral("Das ist keine gültige JSON-Einstellungsdatei.");
 		return false;
 	}
 	return mv::fromJson(doc.object(), config, error);
@@ -124,6 +125,12 @@ public:
 	MultiviewWindow() : QMainWindow(nullptr)
 	{
 		setWindowTitle(QString::fromUtf8(mv::WindowTitle));
+#ifdef Q_OS_MACOS
+		// Reusing a closed window and its native video views crashed OBS on macOS when
+		// reopening. Build a fresh window each time instead; the layout is reloaded
+		// from layout.json.
+		setAttribute(Qt::WA_DeleteOnClose);
+#endif
 		auto *identity = new QLabel(QString::fromUtf8(mv::Identity), this);
 		identity->setObjectName("creatorVersionLabel");
 		identity->setTextFormat(Qt::PlainText);
@@ -136,18 +143,18 @@ public:
 			blog(LOG_WARNING, "[multiview-plus] Config load failed: %s", error.toUtf8().constData());
 		canvas = new Canvas(this);
 		setCentralWidget(canvas);
-		toolbar = addToolBar(QStringLiteral("멀티뷰"));
+		toolbar = addToolBar(QStringLiteral("Multiview"));
 		toolbar->setMovable(false);
-		auto *settings = toolbar->addAction(QStringLiteral("레이아웃 설정"));
+		auto *settings = toolbar->addAction(QStringLiteral("Layout-Einstellungen"));
 		connect(settings, &QAction::triggered, this, [this] { edit(); });
-		auto *save = toolbar->addAction(QStringLiteral("프리셋 내보내기"));
+		auto *save = toolbar->addAction(QStringLiteral("Preset exportieren"));
 		connect(save, &QAction::triggered, this, [this] {
-			auto path = QFileDialog::getSaveFileName(this, QStringLiteral("레이아웃 저장"), "multiview.json", "JSON (*.json)");
-			if (!path.isEmpty() && !writeLayout(path, config)) warn(QStringLiteral("설정 파일을 저장하지 못했습니다."));
+			auto path = QFileDialog::getSaveFileName(this, QStringLiteral("Layout speichern"), "multiview.json", "JSON (*.json)");
+			if (!path.isEmpty() && !writeLayout(path, config)) warn(QStringLiteral("Die Einstellungsdatei konnte nicht gespeichert werden."));
 		});
-		auto *load = toolbar->addAction(QStringLiteral("프리셋 가져오기"));
+		auto *load = toolbar->addAction(QStringLiteral("Preset importieren"));
 		connect(load, &QAction::triggered, this, [this] {
-			auto path = QFileDialog::getOpenFileName(this, QStringLiteral("레이아웃 열기"), {}, "JSON (*.json)");
+			auto path = QFileDialog::getOpenFileName(this, QStringLiteral("Layout öffnen"), {}, "JSON (*.json)");
 			if (path.isEmpty()) return;
 			auto candidate = config;
 			QString error;
@@ -158,7 +165,7 @@ public:
 		monitors = new QComboBox(toolbar);
 		toolbar->addWidget(monitors);
 		refreshMonitors();
-		auto *fullscreen = toolbar->addAction(QStringLiteral("전체 화면"));
+		auto *fullscreen = toolbar->addAction(QStringLiteral("Vollbild"));
 		connect(fullscreen, &QAction::triggered, this, [this] { enterFullscreen(); });
 		connect(qApp, &QGuiApplication::screenAdded, this, [this](QScreen *) { refreshMonitors(); });
 		connect(qApp, &QGuiApplication::screenRemoved, this, [this](QScreen *) {
@@ -168,9 +175,9 @@ public:
 		setContextMenuPolicy(Qt::CustomContextMenu);
 		connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
 			QMenu menu(this);
-			menu.addAction(QStringLiteral("레이아웃 설정"), this, [this] { edit(); });
-			menu.addAction(QStringLiteral("창 모드 (Esc)"), this, [this] { leaveFullscreen(); });
-			menu.addAction(QStringLiteral("닫기"), this, [this] { close(); });
+			menu.addAction(QStringLiteral("Layout-Einstellungen"), this, [this] { edit(); });
+			menu.addAction(QStringLiteral("Fenstermodus (Esc)"), this, [this] { leaveFullscreen(); });
+			menu.addAction(QStringLiteral("Schließen"), this, [this] { close(); });
 			menu.exec(mapToGlobal(pos));
 		});
 		canvas->apply(config);
@@ -185,10 +192,10 @@ protected:
 	void closeEvent(QCloseEvent *event) override { canvas->suspend(); QMainWindow::closeEvent(event); }
 	void showEvent(QShowEvent *event) override { QMainWindow::showEvent(event); canvas->resume(); }
 private:
-	void warn(const QString &message) { QMessageBox::warning(this, QStringLiteral("멀티뷰 설정"), message); }
+	void warn(const QString &message) { QMessageBox::warning(this, QStringLiteral("Multiview-Einstellungen"), message); }
 	void apply(const mv::LayoutConfig &candidate)
 	{
-		if (!writeLayout(settingsPath(), candidate)) { warn(QStringLiteral("설정을 저장하지 못했습니다.")); return; }
+		if (!writeLayout(settingsPath(), candidate)) { warn(QStringLiteral("Die Einstellungen konnten nicht gespeichert werden.")); return; }
 		config = candidate;
 		canvas->apply(config);
 	}
@@ -215,6 +222,12 @@ private:
 		if (index < 0 || index >= screens.size()) return;
 		normalGeometry = saveGeometry();
 		showNormal();
+#ifdef Q_OS_MACOS
+		// macOS enters native full screen on the screen the window belongs to,
+		// so assign the chosen monitor explicitly before switching.
+		if (auto *handle = windowHandle())
+			handle->setScreen(screens[index]);
+#endif
 		setGeometry(screens[index]->geometry());
 		toolbar->hide();
 		showFullScreen();
@@ -245,7 +258,11 @@ void frontendEvent(enum obs_frontend_event event, void *)
 
 bool obs_module_load(void)
 {
+#if defined(_WIN32)
 	blog(LOG_INFO, "[multiview-plus] %s loaded (OBS 32.2.2 / Windows x64)", mv::Identity);
+#else
+	blog(LOG_INFO, "[multiview-plus] %s loaded (macOS)", mv::Identity);
+#endif
 	return true;
 }
 
