@@ -66,7 +66,15 @@ VideoTile::VideoTile(const TileConfig &config, bool showNames, QWidget *parent)
     surface_ = new NativeSurface(this);
     // Stats and empty tiles never acquire a native child window or swap chain.
     if (isVideo(config_.kind)) {
+#ifdef __APPLE__
+        // On macOS a native view does not follow when a non-native ancestor moves
+        // (e.g. the toolbar disappearing in full screen shifts the canvas up), so
+        // the video drifted out of its tile and covered the tally borders. Letting
+        // the tile and canvas become native views keeps the video anchored to its
+        // tile.
+#else
         surface_->setAttribute(Qt::WA_DontCreateNativeAncestors);
+#endif
         surface_->setAttribute(Qt::WA_StaticContents);
         surface_->setAttribute(Qt::WA_NativeWindow);
         surface_->setAttribute(Qt::WA_PaintOnScreen);
