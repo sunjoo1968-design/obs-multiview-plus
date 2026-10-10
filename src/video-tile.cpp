@@ -341,7 +341,7 @@ void VideoTile::refresh()
     obs_source_t *next = nullptr;
     switch (config_.kind) {
     case TileKind::Program:
-        title = QStringLiteral("PGM");
+        title = QStringLiteral("SAUS");
         program = true;
         break;
     case TileKind::Preview:
