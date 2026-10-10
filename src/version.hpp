@@ -5,6 +5,6 @@
 #endif
 
 namespace mv {
-inline constexpr const char *Identity = "SunjooAn | " MV_VERSION " | Sunjoo OBS Link Multiview";
-inline constexpr const char *WindowTitle = "Sunjoo OBS Link Multiview | " MV_VERSION " | SunjooAn";
+inline constexpr const char *Identity = " | " MV_VERSION " | OBS Link Multiview";
+inline constexpr const char *WindowTitle = "OBS Link Multiview | " MV_VERSION " | ";
 }
