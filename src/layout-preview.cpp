@@ -7,7 +7,7 @@ LayoutPreview::LayoutPreview(QWidget *parent) : QWidget(parent)
 {
     setMinimumSize(260, 300); setMouseTracking(true);
     setObjectName("layoutPreview");
-    setToolTip(QStringLiteral("칸을 다른 칸으로 드래그하면 위치를 교환합니다. 큰 화면을 작은 화면 영역으로 옮기면 두 영역 전체가 교환됩니다."));
+    setToolTip(QStringLiteral("Ziehe eine Kachel auf eine andere, um ihre Positionen zu tauschen. Wird eine große Anzeige in den Bereich der kleinen gezogen, tauschen beide Bereiche komplett."));
 }
 void LayoutPreview::setLayoutConfig(const LayoutConfig &config) { config_ = config; update(); }
 void LayoutPreview::setSelectedTile(int index) { selected_ = index; update(); }
@@ -38,14 +38,14 @@ void LayoutPreview::paintEvent(QPaintEvent *)
         QString label=t.label;
         if (label.isEmpty()) {
             switch (t.kind) {
-            case TileKind::Program: label=QStringLiteral("프로그램"); break;
-            case TileKind::Preview: label=QStringLiteral("프리뷰"); break;
-            case TileKind::Scene: label=QStringLiteral("장면"); break;
-            case TileKind::Source: label=QStringLiteral("소스"); break;
-            case TileKind::Stats: label=QStringLiteral("통계"); break;
-            case TileKind::Clock: label=QStringLiteral("시계"); break;
+            case TileKind::Program: label=QStringLiteral("PGM"); break;
+            case TileKind::Preview: label=QStringLiteral("PVW"); break;
+            case TileKind::Scene: label=QStringLiteral("Szene"); break;
+            case TileKind::Source: label=QStringLiteral("Quelle"); break;
+            case TileKind::Stats: label=QStringLiteral("Statistik"); break;
+            case TileKind::Clock: label=QStringLiteral("Uhr"); break;
             case TileKind::Resources: label=QStringLiteral("CPU / GPU (OBS)"); break;
-            default: label=QStringLiteral("빈칸"); break;
+            default: label=QStringLiteral("Leer"); break;
             }
         }
         p.setPen(Qt::white);

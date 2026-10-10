@@ -97,7 +97,7 @@ VideoTile::VideoTile(const TileConfig &config, bool showNames, QWidget *parent)
     connect(timer_, &QTimer::timeout, this, [this] { refresh(); });
     obs_frontend_add_event_callback(frontendEvent, this);
     surface_->hide();
-    message_->setText(config_.kind == TileKind::Empty ? QString() : QStringLiteral("불러오는 중"));
+    message_->setText(config_.kind == TileKind::Empty ? QString() : QStringLiteral("Lädt …"));
 }
 
 VideoTile::~VideoTile()
@@ -215,7 +215,7 @@ void VideoTile::createDisplay()
         if (display_)
             obs_display_add_draw_callback(display_, draw, this);
         else {
-            message_->setText(QStringLiteral("영상 표시 장치를 만들 수 없습니다"));
+            message_->setText(QStringLiteral("Videoanzeige konnte nicht erstellt werden"));
             message_->show();
             blog(LOG_ERROR, "[obs-multiview] Failed to create tile display");
         }
@@ -297,11 +297,11 @@ void VideoTile::refresh()
     obs_source_t *next = nullptr;
     switch (config_.kind) {
     case TileKind::Program:
-        title = QStringLiteral("프로그램");
+        title = QStringLiteral("PGM");
         program = true;
         break;
     case TileKind::Preview:
-        title = QStringLiteral("프리뷰");
+        title = QStringLiteral("PVW");
         if (obs_frontend_preview_program_mode_active())
             next = obs_frontend_get_current_preview_scene();
         else
@@ -314,12 +314,12 @@ void VideoTile::refresh()
             obs_source_release(next);
             next = nullptr;
         }
-        title = next ? QString::fromUtf8(obs_source_get_name(next)) : QStringLiteral("대상 없음");
+        title = next ? QString::fromUtf8(obs_source_get_name(next)) : QStringLiteral("Kein Ziel");
         break;
-    case TileKind::Stats: title = QStringLiteral("OBS 통계"); break;
-    case TileKind::Clock: title = QStringLiteral("시계"); break;
+    case TileKind::Stats: title = QStringLiteral("OBS-Statistik"); break;
+    case TileKind::Clock: title = QStringLiteral("Uhr"); break;
     case TileKind::Resources: title = QStringLiteral("CPU / GPU (OBS)"); break;
-    case TileKind::Empty: title = QStringLiteral("빈칸"); break;
+    case TileKind::Empty: title = QStringLiteral("Leer"); break;
     }
     bool red = config_.kind == TileKind::Program;
     bool green = config_.kind == TileKind::Preview && obs_frontend_preview_program_mode_active();
@@ -369,13 +369,13 @@ void VideoTile::refresh()
         } else if (config_.kind == TileKind::Resources) {
             if (!resourceMonitor_) resourceMonitor_ = ResourceMonitor::acquire();
             const auto sample = resourceMonitor_ ? resourceMonitor_->snapshot() : ResourceSnapshot{};
-            const auto percent = [](double value) { return std::isfinite(value) ? QString::number(value, 'f', 1) + "%" : QStringLiteral("측정 불가"); };
-            message_->setText((config_.label.isEmpty() ? QStringLiteral("OBS 사용량") : config_.label) +
-                QStringLiteral("\nCPU %1\nGPU %2\nGPU: 최대 엔진").arg(percent(sample.cpuPercent), percent(sample.gpuPercent)));
+            const auto percent = [](double value) { return std::isfinite(value) ? QString::number(value, 'f', 1) + "%" : QStringLiteral("nicht messbar"); };
+            message_->setText((config_.label.isEmpty() ? QStringLiteral("OBS-Auslastung") : config_.label) +
+                QStringLiteral("\nCPU %1\nGPU %2\nGPU: meistbelastete Engine").arg(percent(sample.cpuPercent), percent(sample.gpuPercent)));
             setProperty("resourceText", message_->text());
         }
         else
-            message_->setText(empty ? QString() : QStringLiteral("장면 또는 소스를 선택해 주세요\n삭제된 대상은 설정에서 다시 지정하세요"));
+            message_->setText(empty ? QString() : QStringLiteral("Bitte Szene oder Quelle auswählen\nGelöschte Ziele in den Einstellungen neu festlegen"));
     }
     name_->setText(config_.label.isEmpty() ? title : config_.label);
     name_->setToolTip(title);
@@ -469,18 +469,18 @@ void VideoTile::updateStats()
 {
     const auto frames = obs_get_total_frames();
     const auto lagged = obs_get_lagged_frames();
-    QString text = QStringLiteral("%1 FPS\n렌더링 지연 %2 / %3\n평균 렌더링 %4 ms")
+    QString text = QStringLiteral("%1 FPS\nVerzögerte Frames %2 / %3\nDurchschn. Renderzeit %4 ms")
         .arg(obs_get_active_fps(), 0, 'f', 2).arg(lagged).arg(frames)
         .arg(double(obs_get_average_frame_time_ns()) / 1000000.0, 0, 'f', 2);
     obs_output_t *output = obs_frontend_get_streaming_output();
     if (output) {
-        text += QStringLiteral("\n송출 %1\n네트워크 드롭 %2")
-            .arg(obs_output_active(output) ? QStringLiteral("진행 중") : QStringLiteral("대기"))
+        text += QStringLiteral("\nStream %1\nNetzwerk-Drops %2")
+            .arg(obs_output_active(output) ? QStringLiteral("läuft") : QStringLiteral("wartet"))
             .arg(obs_output_get_frames_dropped(output));
         obs_output_release(output);
     }
     if (showNames_)
-        text.prepend((config_.label.isEmpty() ? QStringLiteral("OBS 통계") : config_.label) + QStringLiteral("\n"));
+        text.prepend((config_.label.isEmpty() ? QStringLiteral("OBS-Statistik") : config_.label) + QStringLiteral("\n"));
     message_->setText(text);
 }
 

@@ -73,18 +73,18 @@ LayoutConfig defaultLayout() { return presetLayout("atem8", false); }
 static QString validateGeometry(const LayoutConfig &c)
 {
     if (c.columns < 1 || c.columns > 16 || c.rows < 1 || c.rows > 16)
-        return QStringLiteral("격자 행과 열은 1~16이어야 합니다.");
+        return QStringLiteral("Zeilen und Spalten des Rasters müssen zwischen 1 und 16 liegen.");
     if (c.tiles.isEmpty() || c.tiles.size() > 16)
-        return QStringLiteral("칸은 1~16개여야 합니다. 프로그램·프리뷰·통계·빈칸도 개수에 포함됩니다.");
+        return QStringLiteral("Es müssen 1 bis 16 Kacheln sein. PGM, PVW, Statistik und leere Kacheln zählen mit.");
     for (int i = 0; i < c.tiles.size(); ++i) {
         const auto &t = c.tiles[i];
         if (t.x < 0 || t.y < 0 || t.w < 1 || t.h < 1 || t.w > c.columns || t.h > c.rows ||
             t.x > c.columns - t.w || t.y > c.rows - t.h)
-            return QStringLiteral("%1번 칸이 격자 경계를 벗어납니다.").arg(i + 1);
+            return QStringLiteral("Kachel %1 liegt außerhalb des Rasters.").arg(i + 1);
         for (int j = 0; j < i; ++j) {
             const auto &u = c.tiles[j];
             if (t.x < u.x + u.w && u.x < t.x + t.w && t.y < u.y + u.h && u.y < t.y + t.h)
-                return QStringLiteral("%1번 칸과 %2번 칸이 겹칩니다.").arg(j + 1).arg(i + 1);
+                return QStringLiteral("Kachel %1 und Kachel %2 überlappen sich.").arg(j + 1).arg(i + 1);
         }
     }
     return {};
@@ -95,11 +95,11 @@ QString validateLayout(const LayoutConfig &c)
     if (!geometryIssue.isEmpty()) return geometryIssue;
     for (int i = 0; i < c.tiles.size(); ++i) {
         const auto &t = c.tiles[i];
-        if (kindName(t.kind).isEmpty()) return QStringLiteral("알 수 없는 칸 종류입니다.");
+        if (kindName(t.kind).isEmpty()) return QStringLiteral("Unbekannter Kacheltyp.");
         if ((t.kind == TileKind::Scene || t.kind == TileKind::Source) && t.uuid.trimmed().isEmpty())
-            return QStringLiteral("%1번 칸의 장면 또는 소스를 선택하세요.").arg(i + 1);
+            return QStringLiteral("Bitte für Kachel %1 eine Szene oder Quelle wählen.").arg(i + 1);
         if (t.uuid.size() > 256 || t.label.size() > 256 || t.tallyUuid.size() > 256)
-            return QStringLiteral("UUID와 이름은 256자 이하여야 합니다.");
+            return QStringLiteral("UUID und Name dürfen höchstens 256 Zeichen lang sein.");
     }
     return {};
 }
@@ -150,31 +150,31 @@ bool fromJson(const QJsonObject &o, LayoutConfig &config, QString *error)
 {
     auto fail = [&](const QString &message) { if (error) *error = message; return false; };
     int version;
-    if (!readInt(o, "version", version) || (version != 1 && version != 2)) return fail(QStringLiteral("지원하지 않는 설정 버전입니다."));
+    if (!readInt(o, "version", version) || (version != 1 && version != 2)) return fail(QStringLiteral("Diese Einstellungsversion wird nicht unterstützt."));
     LayoutConfig c;
-    if (!readInt(o, "columns", c.columns) || !readInt(o, "rows", c.rows)) return fail(QStringLiteral("격자 크기가 정수가 아닙니다."));
+    if (!readInt(o, "columns", c.columns) || !readInt(o, "rows", c.rows)) return fail(QStringLiteral("Die Rastergröße ist keine ganze Zahl."));
     for (const char *key : {"portrait", "showNames", "clickSwitch", "doubleClickTransition"})
-        if (!o.value(QLatin1String(key)).isBool()) return fail(QStringLiteral("설정의 논리값 형식이 잘못되었습니다."));
+        if (!o.value(QLatin1String(key)).isBool()) return fail(QStringLiteral("Ein Wahrheitswert in den Einstellungen hat ein ungültiges Format."));
     c.portrait = o["portrait"].toBool(); c.showNames = o["showNames"].toBool();
     c.clickSwitch = o["clickSwitch"].toBool(); c.doubleClickTransition = o["doubleClickTransition"].toBool();
-    if (!o["tiles"].isArray()) return fail(QStringLiteral("칸 목록이 없습니다."));
+    if (!o["tiles"].isArray()) return fail(QStringLiteral("Die Kachelliste fehlt."));
     const auto array = o["tiles"].toArray();
-    if (array.isEmpty() || array.size() > 16) return fail(QStringLiteral("칸 개수가 허용 범위를 벗어났습니다."));
+    if (array.isEmpty() || array.size() > 16) return fail(QStringLiteral("Die Anzahl der Kacheln liegt außerhalb des erlaubten Bereichs."));
     for (const auto &v : array) {
-        if (!v.isObject()) return fail(QStringLiteral("칸 설정 형식이 잘못되었습니다."));
+        if (!v.isObject()) return fail(QStringLiteral("Die Kacheleinstellung hat ein ungültiges Format."));
         const auto t = v.toObject(); TileConfig tile;
         if (!t["kind"].isString() || !t["uuid"].isString() || !t["label"].isString())
-            return fail(QStringLiteral("칸 종류, UUID, 이름은 문자열이어야 합니다."));
+            return fail(QStringLiteral("Kacheltyp, UUID und Name müssen Text sein."));
         bool found = false;
         for (auto kind : {TileKind::Program, TileKind::Preview, TileKind::Scene, TileKind::Source, TileKind::Stats, TileKind::Empty, TileKind::Clock, TileKind::Resources})
             if (kindName(kind) == t["kind"].toString()) { tile.kind = kind; found = true; break; }
-        if (!found) return fail(QStringLiteral("알 수 없는 칸 종류입니다."));
+        if (!found) return fail(QStringLiteral("Unbekannter Kacheltyp."));
         tile.uuid = t["uuid"].toString(); tile.label = t["label"].toString();
         if ((version == 2 || t.contains("tallyUuid")) && !t["tallyUuid"].isString())
-            return fail(QStringLiteral("탈리 기준 UUID는 문자열이어야 합니다."));
+            return fail(QStringLiteral("Die Tally-Bezugs-UUID muss Text sein."));
         tile.tallyUuid = t["tallyUuid"].toString();
         if (!readInt(t, "x", tile.x) || !readInt(t, "y", tile.y) || !readInt(t, "w", tile.w) || !readInt(t, "h", tile.h))
-            return fail(QStringLiteral("칸 좌표와 크기는 정수여야 합니다."));
+            return fail(QStringLiteral("Position und Größe der Kachel müssen ganze Zahlen sein."));
         c.tiles.push_back(tile);
     }
     const auto issue = validateLayout(c);

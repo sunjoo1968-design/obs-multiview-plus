@@ -45,11 +45,11 @@ Entfernen: Ordner `obs-multiview-plus.plugin` aus
   keine Messung pro Prozess; die Kachel zeigt dort „nicht messbar“ statt eines falschen Wertes.
 - **Vollbild:** Es wird der native macOS-Vollbildmodus auf dem gewählten Monitor verwendet. Esc beendet ihn.
   Erscheint das Vollbild nicht auf dem gewählten Monitor, bitte melden, dann wird dieser Teil angepasst.
-- **Einstellungen übernehmen:** Die Oberfläche ist koreanisch beschriftet. Auf dem Windows-PC in der
-  Werkzeugleiste **프리셋 내보내기** (Preset exportieren) wählen und die JSON-Datei speichern, am Mac
-  **프리셋 가져오기** (Preset importieren) und diese Datei laden. Die Einstellungen liegen am Mac in
+- **Einstellungen übernehmen:** Die Oberfläche ist auf Deutsch beschriftet (PGM = Programm, PVW = Preview).
+  Auf dem Windows-PC in der Werkzeugleiste **Preset exportieren** wählen und die JSON-Datei speichern, am Mac
+  **Preset importieren** und diese Datei laden. Die Einstellungen liegen am Mac in
   `~/Library/Application Support/obs-studio/plugin_config/obs-multiview-plus/layout.json`.
-- **Weitere Knöpfe:** **레이아웃 설정** = Layout-Einstellungen, **전체 화면** = Vollbild.
+- **Weitere Knöpfe:** **Layout-Einstellungen** und **Vollbild**.
 
 ## Wenn etwas nicht funktioniert
 
