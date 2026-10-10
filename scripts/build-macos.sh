@@ -240,7 +240,8 @@ ARCHS="$(lipo -archs "$BIN")"
 
 # Das Plugin darf weder auf Bibliotheken des Build-Ordners zeigen noch eine eigene
 # Qt-Kopie laden: zwei Qt-Versionen im selben Prozess fuehren zu Abstuerzen.
-if otool -L "$BIN" | grep -E '\.deps|/Users/|/private/|/Volumes/' >/dev/null; then
+# Nur die eingerueckten Abhaengigkeitszeilen pruefen, nicht die Kopfzeile mit dem eigenen Pfad.
+if otool -L "$BIN" | grep -E '^[[:space:]]' | grep -E '\.deps|/Users/|/private/|/Volumes/' >/dev/null; then
     otool -L "$BIN" >&2
     die "Das Plugin verweist auf Bibliotheken ausserhalb von OBS (siehe oben)."
 fi
