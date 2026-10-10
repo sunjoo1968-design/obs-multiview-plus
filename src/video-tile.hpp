@@ -31,6 +31,8 @@ private:
     static void frontendEvent(obs_frontend_event event, void *data);
     void refresh();
     void createDisplay();
+    void destroyDisplay();
+    void syncDisplaySize();
     void releaseSource();
     void switchScene(bool doubleClick);
     void updateStats();
@@ -44,6 +46,8 @@ private:
     QTimer *timer_ = nullptr;
     std::shared_ptr<ResourceMonitor> resourceMonitor_;
     obs_display_t *display_ = nullptr;
+    uint32_t displayWidth_ = 0;
+    uint32_t displayHeight_ = 0;
     // The mutex protects the render snapshot; OBS references never outlive it.
     std::mutex mutex_;
     QImage nameImage_;

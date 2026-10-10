@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
+#include <QPlatformSurfaceEvent>
 #include <QPainter>
 #include <QFontMetrics>
 #include <algorithm>
@@ -104,11 +105,7 @@ VideoTile::~VideoTile()
 {
     obs_frontend_remove_event_callback(frontendEvent, this);
     timer_->stop();
-    if (display_) {
-        obs_display_remove_draw_callback(display_, draw, this);
-        obs_display_destroy(display_);
-        display_ = nullptr;
-    }
+    destroyDisplay();
     releaseSource();
     obs_enter_graphics();
     gs_texture_destroy(nameTexture_);
@@ -178,8 +175,38 @@ void VideoTile::hideEvent(QHideEvent *event)
     QWidget::hideEvent(event);
 }
 
+void VideoTile::destroyDisplay()
+{
+    if (!display_)
+        return;
+    obs_display_remove_draw_callback(display_, draw, this);
+    obs_display_destroy(display_);
+    display_ = nullptr;
+    displayWidth_ = 0;
+    displayHeight_ = 0;
+}
+
+// Keeps the swap chain at the surface's pixel size. This deliberately does not
+// depend on the window being exposed: during the macOS full-screen animation the
+// final resize can arrive while the window is not exposed, and a skipped resize
+// leaves the video taller than its tile, covering tally borders and neighbours.
+void VideoTile::syncDisplaySize()
+{
+    if (!display_)
+        return;
+    const auto dpr = surface_->devicePixelRatioF();
+    const uint32_t width = uint32_t(std::max(1, qRound(surface_->width() * dpr)));
+    const uint32_t height = uint32_t(std::max(1, qRound(surface_->height() * dpr)));
+    if (width == displayWidth_ && height == displayHeight_)
+        return;
+    displayWidth_ = width;
+    displayHeight_ = height;
+    obs_display_resize(display_, width, height);
+}
+
 void VideoTile::createDisplay()
 {
+    syncDisplaySize();
     if (smokeLog_ && !display_ && loggedCreateSkips_++ < 3)
         blog(LOG_INFO, "[mv-display-attempt] tile=%p suspended=%d visible=%d surfaceVisible=%d handle=%p exposed=%d surface=%dx%d",
              static_cast<void *>(this), int(suspended_), int(isVisible()), int(surface_->isVisible()),
@@ -212,15 +239,15 @@ void VideoTile::createDisplay()
             blog(LOG_INFO, "[mv-display] tile=%p kind=%d hwnd=%p create=%p size=%ux%u rect=%d,%d,%d,%d exposed=%d",
                  static_cast<void *>(this), int(config_.kind), nativeHandle, static_cast<void *>(display_), width, height,
                  surface_->x(), surface_->y(), surface_->width(), surface_->height(), int(surface_->windowHandle()->isExposed()));
-        if (display_)
+        if (display_) {
+            displayWidth_ = width;
+            displayHeight_ = height;
             obs_display_add_draw_callback(display_, draw, this);
-        else {
+        } else {
             message_->setText(QStringLiteral("Videoanzeige konnte nicht erstellt werden"));
             message_->show();
             blog(LOG_ERROR, "[obs-multiview] Failed to create tile display");
         }
-    } else {
-        obs_display_resize(display_, width, height);
     }
     if (display_)
         obs_display_set_enabled(display_, true);
@@ -228,6 +255,15 @@ void VideoTile::createDisplay()
 
 bool VideoTile::eventFilter(QObject *watched, QEvent *event)
 {
+    // The native view behind the surface is going away (window closed, moved to
+    // another parent, ...). The OBS display must not outlive it, otherwise OBS
+    // renders into a dangling view and crashes; it is recreated on the next show.
+    if (watched == surface_->windowHandle() && event->type() == QEvent::PlatformSurface &&
+        static_cast<QPlatformSurfaceEvent *>(event)->surfaceEventType() ==
+            QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
+        destroyDisplay();
+    if (watched == surface_ && event->type() == QEvent::Resize)
+        syncDisplaySize();
     if (watched == surface_->windowHandle() && event->type() == QEvent::Expose)
         QTimer::singleShot(0, this, [this] { createDisplay(); });
     if (watched == surface_ && (event->type() == QEvent::Resize || event->type() == QEvent::Show))
@@ -356,6 +392,8 @@ void VideoTile::refresh()
     surface_->setVisible(video);
     if (video && !display_)
         createDisplay();
+    else if (video)
+        syncDisplaySize(); // Self-healing if a resize was missed.
     message_->setVisible(!video);
     if (!video) {
         if (display_)

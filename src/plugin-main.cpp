@@ -125,6 +125,12 @@ public:
 	MultiviewWindow() : QMainWindow(nullptr)
 	{
 		setWindowTitle(QString::fromUtf8(mv::WindowTitle));
+#ifdef Q_OS_MACOS
+		// Reusing a closed window and its native video views crashed OBS on macOS when
+		// reopening. Build a fresh window each time instead; the layout is reloaded
+		// from layout.json.
+		setAttribute(Qt::WA_DeleteOnClose);
+#endif
 		auto *identity = new QLabel(QString::fromUtf8(mv::Identity), this);
 		identity->setObjectName("creatorVersionLabel");
 		identity->setTextFormat(Qt::PlainText);
