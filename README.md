@@ -10,6 +10,7 @@ Funktionsumfang und Tally-Logik stammen aus dem Original (Version 0.5.4). Dieser
 
 - macOS-Unterstützung (Bauskript, Plugin-Bundle, Vollbild, Darstellung der Videokacheln)
 - deutsche Oberfläche mit den Abkürzungen **PGM** (Programm) und **PVW** (Preview)
+- zwei unabhängige Multiview-Fenster, z. B. eines im ATEM-Stil und eines mit 16 frei belegbaren Szenen
 
 Der Windows-Build aus dem Original funktioniert weiterhin, zeigt jetzt aber ebenfalls die deutsche Oberfläche.
 
@@ -37,6 +38,22 @@ Jeder Mac baut sich sein Plugin selbst; nach einem OBS-Update mit neuer Qt-Versi
 Entfernen: den Ordner `obs-multiview-plus.plugin` aus `~/Library/Application Support/obs-studio/plugins` löschen.
 
 ## Bedienung
+
+### Zwei Multiview-Fenster
+
+Im Menü **Werkzeuge** gibt es zwei Einträge, die sich gleichzeitig öffnen lassen:
+
+| Menüeintrag | Fenster | Layout beim ersten Öffnen | Einstellungsdatei |
+|---|---|---|---|
+| **OBS Link Multiview** | Fenster 1 | ATEM-Stil (PVW/PGM + 8 Kacheln) | `layout.json` |
+| **OBS Link Multiview 2** | Fenster 2 | 16 leere Kacheln im 4×4-Raster | `layout-2.json` |
+
+Jedes Fenster hat eigene Layout-Einstellungen, eigenen Preset-Export/-Import, eigene Klick-Optionen und
+einen eigenen Vollbild-Monitor. So kann zum Beispiel Fenster 1 im Vollbild auf dem einen Bildschirm laufen
+und Fenster 2 auf einem anderen. Ein vorhandenes Layout aus einer früheren Version bleibt Fenster 1.
+Jede Videokachel belastet OBS etwas; zwei volle Fenster kosten entsprechend mehr Leistung.
+
+### Kacheln und Layouts
 
 - **Preset ① – Szenen/Quellen 4er-Raster:** vier Kacheln im 2×2-Raster, ohne PGM/PVW.
 - **Preset ② – ATEM-Stil (Standard):** oben links PVW, oben rechts PGM, darunter 8 Kacheln in 4 Spalten × 2 Zeilen.
@@ -118,7 +135,8 @@ ganzen Rechners. Die GPU-Auslastung gibt es nur unter Windows (meistbelastete GP
 dort „nicht messbar“. Encoder-Verzögerung, Bitrate und Audiopegel sind nicht enthalten.
 
 Die Einstellungen liegen im Plugin-Einstellungsordner von OBS unter `obs-multiview-plus/layout.json`
-(Mac: `~/Library/Application Support/obs-studio/plugin_config/obs-multiview-plus/layout.json`).
+(Fenster 1) bzw. `obs-multiview-plus/layout-2.json` (Fenster 2), auf dem Mac unter
+`~/Library/Application Support/obs-studio/plugin_config/obs-multiview-plus/`.
 Szenen und Quellen werden über ihre UUID erkannt. Gelöschte Ziele oder Ziele aus einer anderen
 Szenensammlung müssen in den Einstellungen neu zugewiesen werden.
 
