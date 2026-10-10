@@ -198,11 +198,19 @@ void VideoTile::createDisplay()
         info.cy = height;
         info.format = GS_BGRA;
         info.zsformat = GS_ZS_NONE;
-        info.window.hwnd = reinterpret_cast<void *>(surface_->winId());
+        void *const nativeHandle = reinterpret_cast<void *>(surface_->winId());
+#if defined(_WIN32)
+        info.window.hwnd = nativeHandle;
+#elif defined(__APPLE__)
+        // On macOS, winId() is the NSView that backs the native child widget.
+        info.window.view = reinterpret_cast<id>(nativeHandle);
+#else
+#error "Only Windows and macOS are supported"
+#endif
         display_ = obs_display_create(&info, 0xFF080A0C);
         if (smokeLog_)
             blog(LOG_INFO, "[mv-display] tile=%p kind=%d hwnd=%p create=%p size=%ux%u rect=%d,%d,%d,%d exposed=%d",
-                 static_cast<void *>(this), int(config_.kind), info.window.hwnd, static_cast<void *>(display_), width, height,
+                 static_cast<void *>(this), int(config_.kind), nativeHandle, static_cast<void *>(display_), width, height,
                  surface_->x(), surface_->y(), surface_->width(), surface_->height(), int(surface_->windowHandle()->isExposed()));
         if (display_)
             obs_display_add_draw_callback(display_, draw, this);

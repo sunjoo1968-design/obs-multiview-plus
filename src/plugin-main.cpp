@@ -23,6 +23,7 @@
 #include <QPointer>
 #include <QSaveFile>
 #include <QScreen>
+#include <QWindow>
 #include <QToolBar>
 #include <QLabel>
 #include <QStatusBar>
@@ -215,6 +216,12 @@ private:
 		if (index < 0 || index >= screens.size()) return;
 		normalGeometry = saveGeometry();
 		showNormal();
+#ifdef Q_OS_MACOS
+		// macOS enters native full screen on the screen the window belongs to,
+		// so assign the chosen monitor explicitly before switching.
+		if (auto *handle = windowHandle())
+			handle->setScreen(screens[index]);
+#endif
 		setGeometry(screens[index]->geometry());
 		toolbar->hide();
 		showFullScreen();
@@ -245,7 +252,11 @@ void frontendEvent(enum obs_frontend_event event, void *)
 
 bool obs_module_load(void)
 {
+#if defined(_WIN32)
 	blog(LOG_INFO, "[multiview-plus] %s loaded (OBS 32.2.2 / Windows x64)", mv::Identity);
+#else
+	blog(LOG_INFO, "[multiview-plus] %s loaded (macOS)", mv::Identity);
+#endif
 	return true;
 }
 
