@@ -25,7 +25,9 @@ Kurzfassung (Details, Optionen und Fehlersuche in [docs/MACOS.md](docs/MACOS.md)
    bash scripts/build-macos.sh --install
    ```
 
-4. OBS starten, Menü **Werkzeuge → Sunjoo OBS Link Multiview**.
+4. OBS starten, Menü **Werkzeuge → OBS Link Multiview** (Fenster 1, Standard ATEM-Stil) oder
+   **… Multiview 2** (Fenster 2, Standard 16 leere Kacheln). Beide können gleichzeitig offen sein und haben
+   je ein eigenes Layout (`layout.json`, `layout-2.json`).
 
 Das Skript erkennt Version und Architektur der installierten OBS-App, lädt die passenden OBS-Header und
 Qt-Dateien (mit Prüfsumme), baut das Plugin und installiert es nach

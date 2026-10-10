@@ -37,9 +37,12 @@ MODULE_EXPORT const char *obs_module_description(void)
 MODULE_EXPORT const char *obs_module_name(void) { return mv::WindowTitle; }
 
 namespace {
-QString settingsPath()
+constexpr int WindowCount = 2;
+
+// Window 1 keeps the original file name so existing layouts stay valid.
+QString settingsPath(int index)
 {
-	char *path = obs_module_config_path("layout.json");
+	char *path = obs_module_config_path(index == 1 ? "layout.json" : "layout-2.json");
 	QString result = QString::fromUtf8(path ? path : "");
 	bfree(path);
 	return result;
@@ -122,9 +125,12 @@ private:
 
 class MultiviewWindow final : public QMainWindow {
 public:
-	MultiviewWindow() : QMainWindow(nullptr)
+	explicit MultiviewWindow(int index) : QMainWindow(nullptr), index(index)
 	{
-		setWindowTitle(QString::fromUtf8(mv::WindowTitle));
+		QString title = QString::fromUtf8(mv::WindowTitle);
+		if (index != 1)
+			title += QStringLiteral(" | Fenster %1").arg(index);
+		setWindowTitle(title);
 #ifdef Q_OS_MACOS
 		// Reusing a closed window and its native video views crashed OBS on macOS when
 		// reopening. Build a fresh window each time instead; the layout is reloaded
@@ -137,9 +143,13 @@ public:
 		statusBar()->setSizeGripEnabled(false);
 		statusBar()->addPermanentWidget(identity);
 		resize(1280, 780);
-		config = mv::defaultLayout();
+		// Window 2 starts as a free 4x4 grid for 16 scenes; window 1 as the ATEM-style layout.
+		config = index == 1 ? mv::defaultLayout() : mv::presetLayout(QStringLiteral("grid16"), false);
+		if (index != 1)
+			for (auto &tile : config.tiles)
+				tile.kind = mv::TileKind::Empty; // all 16 tiles free for scenes
 		QString error;
-		if (QFile::exists(settingsPath()) && !readLayout(settingsPath(), config, &error))
+		if (QFile::exists(settingsPath(index)) && !readLayout(settingsPath(index), config, &error))
 			blog(LOG_WARNING, "[multiview-plus] Config load failed: %s", error.toUtf8().constData());
 		canvas = new Canvas(this);
 		setCentralWidget(canvas);
@@ -195,7 +205,7 @@ private:
 	void warn(const QString &message) { QMessageBox::warning(this, QStringLiteral("Multiview-Einstellungen"), message); }
 	void apply(const mv::LayoutConfig &candidate)
 	{
-		if (!writeLayout(settingsPath(), candidate)) { warn(QStringLiteral("Die Einstellungen konnten nicht gespeichert werden.")); return; }
+		if (!writeLayout(settingsPath(index), candidate)) { warn(QStringLiteral("Die Einstellungen konnten nicht gespeichert werden.")); return; }
 		config = candidate;
 		canvas->apply(config);
 	}
@@ -238,6 +248,7 @@ private:
 		toolbar->show();
 		if (!normalGeometry.isEmpty()) restoreGeometry(normalGeometry);
 	}
+	int index = 1;
 	mv::LayoutConfig config;
 	Canvas *canvas = nullptr;
 	QToolBar *toolbar = nullptr;
@@ -245,13 +256,15 @@ private:
 	QByteArray normalGeometry;
 };
 
-QPointer<MultiviewWindow> window;
-QPointer<QAction> menuAction;
+QPointer<MultiviewWindow> windows[WindowCount];
+QPointer<QAction> menuActions[WindowCount];
 void frontendEvent(enum obs_frontend_event event, void *)
 {
 	if (event == OBS_FRONTEND_EVENT_EXIT) {
-		if (window) { window->shutdown(); delete window.data(); }
-		if (menuAction) menuAction->setEnabled(false);
+		for (auto &window : windows)
+			if (window) { window->shutdown(); delete window.data(); }
+		for (auto &action : menuActions)
+			if (action) action->setEnabled(false);
 	}
 }
 } // namespace
@@ -268,20 +281,28 @@ bool obs_module_load(void)
 
 void obs_module_post_load(void)
 {
-	menuAction = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction("OBS Link Multiview"));
-	if (!menuAction) return;
-	QObject::connect(menuAction, &QAction::triggered, menuAction, [] {
-		if (!window) window = new MultiviewWindow;
-		window->show();
-		window->raise();
-		window->activateWindow();
-	});
+	static const char *const names[WindowCount] = {"OBS Link Multiview", "OBS Link Multiview 2"};
+	bool any = false;
+	for (int i = 0; i < WindowCount; ++i) {
+		menuActions[i] = static_cast<QAction *>(obs_frontend_add_tools_menu_qaction(names[i]));
+		if (!menuActions[i]) continue;
+		any = true;
+		QObject::connect(menuActions[i], &QAction::triggered, menuActions[i], [i] {
+			if (!windows[i]) windows[i] = new MultiviewWindow(i + 1);
+			windows[i]->show();
+			windows[i]->raise();
+			windows[i]->activateWindow();
+		});
+	}
+	if (!any) return;
 	obs_frontend_add_event_callback(frontendEvent, nullptr);
 }
 
 void obs_module_unload(void)
 {
 	obs_frontend_remove_event_callback(frontendEvent, nullptr);
-	if (window) delete window.data();
-	if (menuAction) delete menuAction.data();
+	for (auto &window : windows)
+		if (window) delete window.data();
+	for (auto &action : menuActions)
+		if (action) delete action.data();
 }

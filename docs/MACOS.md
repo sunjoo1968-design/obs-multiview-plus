@@ -34,7 +34,12 @@ das passende Qt, baut das Plugin und installiert es nach
   `--obs-tag 33.0.0-rc1` (die zu deinem OBS passende Version).
 - Weitere Optionen: `bash scripts/build-macos.sh --help`
 
-Starten: OBS öffnen, Menü **Werkzeuge → Sunjoo OBS Link Multiview**.
+Starten: OBS öffnen, Menü **Werkzeuge → OBS Link Multiview**.
+
+Es gibt zwei unabhängige Fenster: **OBS Link Multiview** (Fenster 1, Standard: ATEM-Stil) und
+**OBS Link Multiview 2** (Fenster 2, Standard: 16 leere Kacheln im 4×4-Raster). Beide lassen sich
+gleichzeitig öffnen, haben je eigene Einstellungen, Preset-Export/-Import und Vollbild-Monitor. Die Layouts
+liegen in `layout.json` (Fenster 1) und `layout-2.json` (Fenster 2).
 
 Entfernen: Ordner `obs-multiview-plus.plugin` aus
 `~/Library/Application Support/obs-studio/plugins` löschen.
