@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(obs-multiview-plus VERSION 0.5.4 LANGUAGES CXX)
+project(obs-multiview-plus VERSION 0.6.0 LANGUAGES CXX)
 
 if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Windows x64 is required")
@@ -14,7 +14,7 @@ set(OBS_IMPORT_DIR "${CMAKE_SOURCE_DIR}/.deps/obs-imports" CACHE PATH "OBS impor
 list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/.deps/qt6")
 find_package(Qt6 6.11 REQUIRED COMPONENTS Widgets)
 
-set(OBS_RELEASE_CANDIDATE 0)
+set(OBS_RELEASE_CANDIDATE 1)
 set(OBS_BETA 0)
 configure_file("${OBS_SOURCE_DIR}/libobs/obsconfig.h.in" "${CMAKE_BINARY_DIR}/generated/obsconfig.h")
 add_library(obs-sdk INTERFACE)

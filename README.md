@@ -1,3 +1,5 @@
+> **OBS 33 RC1 시험판**: [새 설치 및 호환 안내](docs/OBS33.md). 이전 배포는 OBS 32 Legacy로 보존합니다. 제작자 SunjooAn · 0.6.0
+
 # Sunjoo OBS Link Multiview
 
 제작자 **SunjooAn** · 버전 **0.5.4** · Windows x64 / OBS 32.2.2

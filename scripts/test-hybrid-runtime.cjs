@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),net=require('net'),crypto=require('crypto'),assert=require('assert');
 const {spawn,spawnSync}=require('child_process');
-const root=path.resolve(__dirname,'..'),sandbox=path.join(root,'.local/hybrid-runtime/obs');
+const root=path.resolve(__dirname,'..'),sandbox=process.env.MV_TEST_OBS_ROOT||path.join(root,'.local/hybrid-runtime/obs');
 const lua=process.env.MV_HYBRID_LUA,python=process.env.MV_TEST_PYTHON;
 assert(lua&&python,'Set MV_HYBRID_LUA and MV_TEST_PYTHON');
 assert(typeof WebSocket==='function','Node.js 22+ required');
