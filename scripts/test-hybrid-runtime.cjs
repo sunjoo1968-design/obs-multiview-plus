@@ -41,8 +41,8 @@ await client.call('SetStudioModeEnabled',{studioModeEnabled:true});
 const repeats=Number(process.env.MV_REPEAT_CYCLES||1);assert(Number.isInteger(repeats)&&repeats>=1&&repeats<=200);
 for(let iteration=0;iteration<repeats;iteration++)for(const pgm of [1,2]){
  await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${pgm}`});await pause(250);
- await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
- await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
+ await client.call('SetCurrentPreviewScene',{sceneName:'ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
+ await client.call('SetCurrentPreviewScene',{sceneName:'ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
  if(process.env.MV_TEST_TALLY_VERSION){
   const response=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'});
   const data=response.responseData;assert(data.ready&&data.version===process.env.MV_TEST_TALLY_VERSION);
@@ -63,7 +63,7 @@ for(let iteration=0;iteration<repeats;iteration++)for(const pgm of [1,2]){
 }
 if(process.env.MV_TEST_MIX_TAKE==='1'){
  for(const bank of [1,2]){
-  const sceneName=`Hybrid ME${bank} ${bank===1?'PGM':'SUB'} Output`;
+  const sceneName=`ME${bank} ${bank===1?'PGM':'SUB'} Output`;
   await client.call('TriggerHotkeyByName',{hotkeyName:'sunjoo_obs_link_test_cut'});
   await client.call('TriggerHotkeyByName',{hotkeyName:'camera_mix_hybrid.camera_1'});await pause(250);
   await client.call('SetCurrentPreviewScene',{sceneName});
@@ -89,8 +89,8 @@ if(soak){
  while(Date.now()<deadline){
   const pgm=cycles%2+1;
   await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${pgm}`});await pause(250);
-  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
-  await client.call('SetCurrentPreviewScene',{sceneName:'Hybrid ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
+  await client.call('SetCurrentPreviewScene',{sceneName:'ME1 PGM Output'});await client.call('TriggerStudioModeTransition');await pause(500);
+  await client.call('SetCurrentPreviewScene',{sceneName:'ME1 PGM Output'});await client.call('TriggerHotkeyByName',{hotkeyName:`camera_mix_hybrid.camera_${3-pgm}`});await pause(250);
   await checkTiles(pgm);
   const response=await client.call('CallVendorRequest',{vendorName:'sunjooan-tally',requestType:'GetSnapshot'}),data=response.responseData;
   assert(data.ready&&data.programScenes.some(x=>x.name===`Test Scene ${pgm}`)&&!data.programScenes.some(x=>x.name===`Test Scene ${3-pgm}`));

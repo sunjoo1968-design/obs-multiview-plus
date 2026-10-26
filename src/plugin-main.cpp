@@ -245,7 +245,7 @@ void frontendEvent(enum obs_frontend_event event, void *)
 
 bool obs_module_load(void)
 {
-	blog(LOG_INFO, "[multiview-plus] %s loaded (OBS 33.0.0-rc1 / Windows x64)", mv::Identity);
+	blog(LOG_INFO, "[multiview-plus] %s loaded (OBS 33.0.0 / Windows x64)", mv::Identity);
 	return true;
 }
 
