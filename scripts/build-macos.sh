@@ -152,7 +152,16 @@ QT_URL="$QT_BASE/$QT_VERSION/macos-deps-qt6-$QT_VERSION-universal.tar.xz"
 
 if [ ! -f "$QT_ARCHIVE" ]; then
     info "Lade Qt-Paket $QT_VERSION"
-    curl -fL --retry 3 --progress-bar -o "$QT_ARCHIVE.partial" "$QT_URL"
+    # Grosse Datei: bei Verbindungsabbruechen (z. B. HTTP/2-Fehler) bis zu 8 Mal
+    # an der Abbruchstelle fortsetzen, ab dem 2. Versuch ueber HTTP/1.1.
+    attempt=1
+    until curl -fL --retry 3 --progress-bar -C - $([ "$attempt" -gt 1 ] && echo --http1.1) \
+            -o "$QT_ARCHIVE.partial" "$QT_URL"; do
+        [ "$attempt" -lt 8 ] || die "Download des Qt-Pakets fehlgeschlagen. Internetverbindung pruefen und das Skript erneut starten (der Download wird fortgesetzt)."
+        warn "Download unterbrochen, versuche es erneut ($attempt/8) ..."
+        attempt=$((attempt + 1))
+        sleep 2
+    done
     mv "$QT_ARCHIVE.partial" "$QT_ARCHIVE"
 fi
 QT_ACTUAL="$(shasum -a 256 "$QT_ARCHIVE" | awk '{print $1}')"
