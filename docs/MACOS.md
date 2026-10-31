@@ -76,3 +76,12 @@ Entfernen: Ordner `obs-multiview-plus.plugin` aus
 - Die Windows-Laufzeittests (`scripts/test-runtime.ps1`, Smoke-Driver) sind nicht portiert. Die
   Unit-Tests (`layout-test`, `tally-test`) laufen auch am Mac und werden vom Skript ausgeführt.
 - Nach einem OBS-Update mit neuer Qt-Version das Plugin neu bauen.
+
+## Bauen auf GitHub (ohne eigenen Mac)
+
+Im Repository auf GitHub unter **Actions → Build macOS plugin → Run workflow** die OBS-Version eintragen
+(sie muss zu deinem installierten OBS passen, z. B. `33.0.1`) und starten. Nach wenigen Minuten stehen die
+ZIP-Dateien für **Apple Silicon** und **Intel** unter „Artifacts“ zum Download bereit. Entpacken, dann
+`obs-multiview-plus.plugin` nach `~/Library/Application Support/obs-studio/plugins` legen und einmal
+`xattr -dr com.apple.quarantine ~/Library/Application\ Support/obs-studio/plugins/obs-multiview-plus.plugin`
+ausführen. OBS beenden, bevor du das Plugin ersetzt.

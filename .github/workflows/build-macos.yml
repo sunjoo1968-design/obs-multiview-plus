@@ -1,0 +1,61 @@
+name: Build macOS plugin
+
+# Manuell starten: GitHub -> Actions -> "Build macOS plugin" -> "Run workflow".
+# Baut das Plugin je einmal fuer Apple Silicon und Intel gegen die angegebene OBS-Version
+# und stellt die ZIP-Dateien als Artefakte bereit.
+on:
+  workflow_dispatch:
+    inputs:
+      obs_version:
+        description: "OBS-Version, gegen die gebaut wird (muss zu deinem installierten OBS passen)"
+        required: true
+        default: "33.0.1"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            arch: Apple
+            label: apple-silicon
+          - runner: macos-15-intel
+            arch: Intel
+            label: intel
+    runs-on: ${{ matrix.runner }}
+    name: macOS ${{ matrix.label }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Offizielle OBS-App herunterladen
+        env:
+          OBS_VERSION: ${{ inputs.obs_version }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/obsproject/obs-studio/releases/download/${OBS_VERSION}/OBS-Studio-${OBS_VERSION}-macOS-${{ matrix.arch }}.dmg"
+          curl -fL --retry 3 -o "$RUNNER_TEMP/obs.dmg" "$url"
+          mnt="$RUNNER_TEMP/obs-mount"
+          mkdir -p "$mnt"
+          hdiutil attach "$RUNNER_TEMP/obs.dmg" -nobrowse -readonly -mountpoint "$mnt"
+          cp -R "$mnt/OBS.app" "$RUNNER_TEMP/OBS.app"
+          hdiutil detach "$mnt"
+          lipo -archs "$RUNNER_TEMP/OBS.app/Contents/MacOS/OBS"
+
+      - name: Plugin bauen
+        env:
+          OBS_VERSION: ${{ inputs.obs_version }}
+        run: |
+          bash scripts/build-macos.sh --obs-app "$RUNNER_TEMP/OBS.app" --obs-tag "$OBS_VERSION" --clean
+
+      - name: ZIP und Pruefsumme bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-multiview-plus-macos-${{ matrix.label }}-obs${{ inputs.obs_version }}
+          path: |
+            dist/macos/*.zip
+            dist/macos/*.sha256
+          if-no-files-found: error
